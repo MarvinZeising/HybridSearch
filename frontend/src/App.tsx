@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import NewsForm from './components/NewsForm';
 import NewsList from './components/NewsList';
+import EditNewsForm from './components/EditNewsForm';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Routes>
             <Route path="/" element={<NewsList />} />
             <Route path="/create" element={<NewsForm />} />
+            <Route path="/edit/:id" element={<EditNewsForm />} />
           </Routes>
         </main>
       </div>
