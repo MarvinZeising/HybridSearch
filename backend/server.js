@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:adminpassword@mongodb:27017/news?authSource=admin&replicaSet=rs0';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongodb:27017/news?replicaSet=rs0';
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
@@ -81,7 +81,7 @@ app.post('/api/news/search', async (req, res) => {
   try {
     const { query } = req.body;
     
-    const searchResponse = await axios.post('http://localhost:9200/news/_search', {
+    const searchResponse = await axios.post('http://opensearch:9200/news/_search', {
       query: {
         multi_match: {
           query: query,
