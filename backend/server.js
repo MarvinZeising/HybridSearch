@@ -19,6 +19,7 @@ mongoose.connect('mongodb://admin:adminpassword@localhost:27017/', {
 const newsPostSchema = new mongoose.Schema({
   title: String,
   description: String,
+  createdAt: { type: Date, default: Date.now }
 });
 
 const NewsPost = mongoose.model('NewsPost', newsPostSchema);
@@ -35,10 +36,45 @@ app.post('/api/news', async (req, res) => {
   }
 });
 
-// (Optional) Get all posts
+// Get all posts
 app.get('/api/news', async (req, res) => {
-  const posts = await NewsPost.find();
-  res.json(posts);
+  try {
+    const posts = await NewsPost.find().sort({ createdAt: -1 });
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch posts' });
+  }
+});
+
+// Get a single post
+app.get('/api/news/:id', async (req, res) => {
+  try {
+    const post = await NewsPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    res.json(post);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch post' });
+  }
+});
+
+// Update a post
+app.put('/api/news/:id', async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const post = await NewsPost.findByIdAndUpdate(
+      req.params.id,
+      { title, description },
+      { new: true, runValidators: true }
+    );
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    res.json(post);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update post' });
+  }
 });
 
 const PORT = 4000;
