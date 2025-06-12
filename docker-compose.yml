@@ -12,6 +12,18 @@ services:
       - app-network
     command: ["--replSet", "rs0"]
 
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "4000:4000"
+    environment:
+      - MONGODB_URI=mongodb://admin:adminpassword@mongodb:27017/news?authSource=admin&replicaSet=rs0
+    networks:
+      - app-network
+    depends_on:
+      - mongodb
+
   opensearch:
     image: opensearchproject/opensearch:latest
     container_name: opensearch
