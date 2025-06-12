@@ -1,30 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import axios from 'axios';
+import type { NewsPost } from '../types/news';
 
 interface SearchBarProps {
-  onSearch: (results: any[]) => void;
+  onSearch: (results: NewsPost[]) => void;
 }
 
-const SearchBar = ({ onSearch }: SearchBarProps) => {
+const SearchBar = memo(({ onSearch }: SearchBarProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     const searchPosts = async () => {
       if (!searchTerm.trim()) {
-        // If search is empty, fetch all posts
-        try {
-          const response = await axios.get('http://localhost:4000/api/news');
-          onSearch(response.data);
-        } catch (error) {
-          console.error('Error fetching posts:', error);
-        }
+        // Don't fetch all posts when search is empty
         return;
       }
 
       setIsSearching(true);
       try {
-        const response = await axios.post('http://localhost:4000/api/news/search', {
+        const response = await axios.post<NewsPost[]>('http://localhost:4000/api/news/search', {
           query: searchTerm
         });
         onSearch(response.data);
@@ -57,6 +52,8 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
       </div>
     </div>
   );
-};
+});
+
+SearchBar.displayName = 'SearchBar';
 
 export default SearchBar; 

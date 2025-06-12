@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import type { NewsPost } from '../types/news';
@@ -26,9 +26,9 @@ const NewsList = () => {
     fetchPosts();
   }, []);
 
-  const handleSearch = (results: NewsPost[]) => {
+  const handleSearch = useCallback((results: NewsPost[]) => {
     setPosts(results);
-  };
+  }, []);
 
   if (loading) {
     return (
