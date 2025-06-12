@@ -2,18 +2,17 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const axios = require('axios');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
-mongoose.connect('mongodb://admin:adminpassword@localhost:27017/', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  authSource: "admin"
-}).then(() => console.log('MongoDB connected'))
-  .catch(err => console.error(err));
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://admin:adminpassword@mongodb:27017/news?authSource=admin&replicaSet=rs0';
+mongoose.connect(MONGODB_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // NewsPost Schema
 const newsPostSchema = new mongoose.Schema({
@@ -74,6 +73,36 @@ app.put('/api/news/:id', async (req, res) => {
     res.json(post);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update post' });
+  }
+});
+
+// Search posts using OpenSearch
+app.post('/api/news/search', async (req, res) => {
+  try {
+    const { query } = req.body;
+    
+    const searchResponse = await axios.post('http://localhost:9200/news/_search', {
+      query: {
+        multi_match: {
+          query: query,
+          fields: ['title', 'description'],
+          fuzziness: 'AUTO'
+        }
+      }
+    });
+
+    const hits = searchResponse.data.hits.hits;
+    const postIds = hits.map(hit => hit._id);
+    
+    // Fetch full documents from MongoDB using the IDs
+    const posts = await NewsPost.find({
+      _id: { $in: postIds }
+    }).sort({ createdAt: -1 });
+
+    res.json(posts);
+  } catch (err) {
+    console.error('Search error:', err);
+    res.status(500).json({ error: 'Failed to search posts' });
   }
 });
 
