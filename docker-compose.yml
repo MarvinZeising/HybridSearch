@@ -6,13 +6,11 @@ services:
     container_name: mongodb
     ports:
       - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=adminpassword
     volumes:
       - mongodb_data:/data/db
     networks:
       - app-network
+    command: ["--replSet", "rs0"]
 
   opensearch:
     image: opensearchproject/opensearch:latest
@@ -46,6 +44,19 @@ services:
       - app-network
     depends_on:
       - opensearch
+
+  monstache:
+    image: rwynn/monstache:latest
+    container_name: monstache
+    command: -f /config.toml
+    volumes:
+      - ./monstache-config.toml:/config.toml
+    networks:
+      - app-network
+    depends_on:
+      - mongodb
+      - opensearch
+    restart: unless-stopped
 
 volumes:
   mongodb_data:
