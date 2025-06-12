@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import type { NewsPost } from '../types/news';
+import SearchBar from './SearchBar';
 
 const NewsList = () => {
   const [posts, setPosts] = useState<NewsPost[]>([]);
@@ -25,6 +26,10 @@ const NewsList = () => {
     fetchPosts();
   }, []);
 
+  const handleSearch = (results: NewsPost[]) => {
+    setPosts(results);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -44,6 +49,7 @@ const NewsList = () => {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-gray-900">News Posts</h2>
+      <SearchBar onSearch={handleSearch} />
       {posts.length === 0 ? (
         <p className="text-gray-500">No news posts found.</p>
       ) : (
