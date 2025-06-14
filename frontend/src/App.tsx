@@ -20,6 +20,14 @@ function App() {
                 >
                   Dashboard
                 </a>
+                <a
+                  href="http://localhost:8081"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  Mongo Express
+                </a>
                 <Link to="/" className="text-gray-600 hover:text-gray-900">
                   View Posts
                 </Link>
