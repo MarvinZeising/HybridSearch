@@ -3,7 +3,7 @@ const cors = require('cors');
 const axios = require('axios');
 const connectDB = require('./db');
 const { NewsPost, initializeDefaultPosts } = require('./posts/NewsPost');
-const createIndex = require('./posts/createIndex');
+const { createIndex, hasIndex } = require('./posts/createIndex');
 
 const app = express();
 app.use(cors());
@@ -81,7 +81,7 @@ app.post('/api/news/search', async (req, res) => {
   try {
     const { query } = req.body;
 
-    const searchResponse = await axios.post('http://opensearch:9200/news/_search', {
+    const searchResponse = await axios.post('http://opensearch:9200/posts/_search', {
       query: {
         multi_match: {
           query: query,
@@ -111,11 +111,12 @@ app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
 
   try {
-    // Create OpenSearch index
-    await createIndex();
-
-    // Initialize MongoDB with default posts
-    await initializeDefaultPosts();
+    if (!await hasIndex()) {
+      await Promise.all([
+        createIndex(),
+        initializeDefaultPosts()
+      ])
+    }
 
     // Mark initialization as complete
     isInitialized = true;

@@ -4,6 +4,14 @@ const path = require('path');
 
 const sleep = (seconds) => new Promise(resolve => setTimeout(resolve, seconds * 1000));
 
+async function hasIndex() {
+  const response = await axios.get('http://opensearch:9200/posts');
+  if (response.data.status === 404) {
+    return false
+  }
+  return true
+}
+
 async function createIndex() {
   try {
     await Promise.all([
@@ -60,4 +68,4 @@ async function createPipeline(modelId) {
   console.log('Created Pipeline: ', response.data)
 };
 
-module.exports = createIndex;
+module.exports = { createIndex, hasIndex };
