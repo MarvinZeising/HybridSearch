@@ -1,11 +1,8 @@
-// backend/server.js
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
-const connectDB = require('./models/db');
-const NewsPost = require('./models/NewsPost');
+const connectDB = require('./db');
+const { NewsPost, initializeDefaultPosts } = require('./posts/NewsPost');
 
 const app = express();
 app.use(cors());
@@ -102,25 +99,8 @@ app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
 
   try {
-    console.log('Creating news posts collection');
-    NewsPost.createCollection()
-
-    // Check if we already have posts
-    const count = await NewsPost.countDocuments();
-    if (count === 0) {
-      console.log('No posts found, inserting default posts...');
-      
-      // Read and parse the default posts
-      const defaultPostsPath = path.join(__dirname, 'default-posts.json');
-      const defaultPosts = JSON.parse(fs.readFileSync(defaultPostsPath, 'utf8'));
-      
-      // Insert the posts
-      await NewsPost.insertMany(defaultPosts);
-      console.log('Default posts inserted successfully');
-    } else {
-      console.log('Database already contains posts, skipping default posts insertion');
-    }
+    await initializeDefaultPosts();
   } catch (error) {
-    console.error('Error inserting default posts:', error);
+    console.error('Error during initialization:', error);
   }
 });
