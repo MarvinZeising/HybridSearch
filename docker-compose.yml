@@ -82,19 +82,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
-
-  opensearch-init:
-    image: curlimages/curl:latest
-    container_name: opensearch-init
-    volumes:
-      - ./opensearch:/opensearch
-    command: ["/opensearch/init.sh"]
-    networks:
-      - opensearch-network
-    depends_on:
-      opensearch:
-        condition: service_healthy
+      start_period: 10s
 
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:latest
@@ -122,6 +110,8 @@ services:
       mongodb:
         condition: service_healthy
       opensearch:
+        condition: service_healthy
+      backend:
         condition: service_healthy
 
 networks:

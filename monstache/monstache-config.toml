@@ -27,4 +27,4 @@ replay = true
 # Index mapping
 [[mapping]]
 namespace = "news.posts"
-index = "news" 
+index = "posts-1"

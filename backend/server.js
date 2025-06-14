@@ -3,6 +3,7 @@ const cors = require('cors');
 const axios = require('axios');
 const connectDB = require('./db');
 const { NewsPost, initializeDefaultPosts } = require('./posts/NewsPost');
+const createIndex = require('./posts/createIndex');
 
 const app = express();
 app.use(cors());
@@ -99,6 +100,10 @@ app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
 
   try {
+    // Create OpenSearch index
+    await createIndex();
+
+    // Initialize MongoDB with default posts
     await initializeDefaultPosts();
   } catch (error) {
     console.error('Error during initialization:', error);
