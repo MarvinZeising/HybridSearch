@@ -21,10 +21,10 @@ services:
       - opensearch-network
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 1s
-      timeout: 1s
-      retries: 20
-      start_period: 1s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 12s
 
   mongo-express:
     image: mongo-express:latest
@@ -56,6 +56,12 @@ services:
         condition: service_healthy
       opensearch:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 1s
 
   opensearch:
     image: opensearchproject/opensearch:latest
@@ -120,4 +126,4 @@ networks:
 
 volumes:
   mongodb_data:
-  opensearch-data: 
+  opensearch-data:

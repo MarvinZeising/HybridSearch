@@ -9,8 +9,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Track initialization status
+let isInitialized = false;
+
 // Connect to MongoDB
 connectDB();
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  if (!isInitialized) {
+    return res.status(503).json({ status: 'initializing' });
+  }
+  res.status(200).json({ status: 'healthy' });
+});
 
 // API endpoint to create a news post
 app.post('/api/news', async (req, res) => {
@@ -69,7 +80,7 @@ app.put('/api/news/:id', async (req, res) => {
 app.post('/api/news/search', async (req, res) => {
   try {
     const { query } = req.body;
-    
+
     const searchResponse = await axios.post('http://opensearch:9200/news/_search', {
       query: {
         multi_match: {
@@ -82,7 +93,7 @@ app.post('/api/news/search', async (req, res) => {
 
     const hits = searchResponse.data.hits.hits;
     const postIds = hits.map(hit => hit._id);
-    
+
     // Fetch full documents from MongoDB using the IDs
     const posts = await NewsPost.find({
       _id: { $in: postIds }
@@ -105,7 +116,12 @@ app.listen(PORT, async () => {
 
     // Initialize MongoDB with default posts
     await initializeDefaultPosts();
+
+    // Mark initialization as complete
+    isInitialized = true;
+    console.log('Server initialization completed successfully');
   } catch (error) {
     console.error('Error during initialization:', error);
+    // Don't set isInitialized to true if there's an error
   }
 });
