@@ -1,0 +1,30 @@
+# MongoDB connection string
+mongo-url = "mongodb://mongodb:27017/news?authSource=admin&directConnection=true"
+
+# OpenSearch connection
+elasticsearch-urls = ["http://opensearch:9200"]
+
+# Direct namespace mapping
+direct-read-namespaces = ["news.posts"]
+
+# Enable real-time sync
+change-stream-namespaces = ["news.posts"]
+
+# Enable verbose logging for debugging
+verbose = true
+
+# Enable stats reporting
+stats = true
+
+# Enable resync on startup
+resume = true
+resume-name = "default"
+resume-strategy = 0
+
+# Additional settings for better reliability
+replay = true
+
+# Index mapping
+[[mapping]]
+namespace = "news.posts"
+index = "news" 
