@@ -5,21 +5,23 @@ const path = require('path');
 const sleep = (seconds) => new Promise(resolve => setTimeout(resolve, seconds * 1000));
 
 async function hasIndex() {
-  const response = await axios.get('http://opensearch:9200/posts');
-  if (response.data.status === 404) {
+  try {
+    const response = await axios.get('http://opensearch:9200/posts');
+    if (response.data.status === 404) {
+      return false
+    }
+  } catch (error) {
     return false
   }
+
   return true
 }
 
 async function createIndex() {
   try {
     await Promise.all([
-      createIndexTemplate(),
-      deployModel().then((modelId) => {
-        console.log('got modelId', modelId)
-        createPipeline(modelId)
-      })
+      createSearchPipeline().then(createIndexTemplate),
+      deployModel().then(createIngestPipeline)
     ])
 
     console.log(`Successfully created model, pipeline, and index template for posts`);
@@ -61,11 +63,25 @@ async function tryGetModelId(taskId) {
   throw new Error('not completed')
 }
 
-async function createPipeline(modelId) {
-  const pipeline = JSON.parse(fs.readFileSync(path.join(__dirname, 'posts-pipeline.json'), 'utf8').replace(/MODEL_ID/gm, modelId));
-  console.log('Creating pipeline', pipeline)
+async function createIngestPipeline(modelId) {
+  const pipeline = JSON.parse(fs.readFileSync(path.join(__dirname, 'posts-ingest-pipeline.json'), 'utf8').replace(/MODEL_ID/gm, modelId));
   const response = await axios.put(`http://opensearch:9200/_ingest/pipeline/posts-pipeline`, pipeline);
-  console.log('Created Pipeline: ', response.data)
+  console.log('Created Ingest Pipeline: ', response.data)
 };
 
-module.exports = { createIndex, hasIndex };
+async function createSearchPipeline() {
+  const pipeline = JSON.parse(fs.readFileSync(path.join(__dirname, 'posts-search-pipeline.json'), 'utf8'));
+  const response = await axios.put(`http://opensearch:9200/_search/pipeline/posts-hybrid-search`, pipeline);
+  console.log('Created Search Pipeline: ', response.data)
+};
+
+async function getModelId() {
+  try {
+    const response = await axios.get('http://opensearch:9200/_ingest/pipeline/posts-pipeline')
+    return response.data['posts-pipeline'].processors[0].text_embedding.model_id
+  } catch (error) {
+    throw new Error(error.data)
+  }
+}
+
+module.exports = { createIndex, hasIndex, getModelId };

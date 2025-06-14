@@ -3,7 +3,7 @@ const cors = require('cors');
 const axios = require('axios');
 const connectDB = require('./db');
 const { NewsPost, initializeDefaultPosts } = require('./posts/NewsPost');
-const { createIndex, hasIndex } = require('./posts/createIndex');
+const { createIndex, hasIndex, getModelId } = require('./posts/createIndex');
 
 const app = express();
 app.use(cors());
@@ -11,6 +11,7 @@ app.use(express.json());
 
 // Track initialization status
 let isInitialized = false;
+let modelId = ''
 
 // Connect to MongoDB
 connectDB();
@@ -83,21 +84,53 @@ app.post('/api/news/search', async (req, res) => {
 
     const searchResponse = await axios.post('http://opensearch:9200/posts/_search', {
       query: {
-        multi_match: {
-          query: query,
-          fields: ['title', 'description'],
-          fuzziness: 'AUTO'
+        hybrid: {
+          queries: [
+            {
+              multi_match: {
+                query: query,
+                fields: ['title^4', 'description'],
+                type: 'best_fields',
+                fuzziness: 'AUTO'
+              }
+            },
+            {
+              neural: {
+                title_vector: {
+                  query_text: query,
+                  model_id: modelId,
+                  k: 5
+                }
+              }
+            },
+            {
+              neural: {
+                description_vector: {
+                  query_text: query,
+                  model_id: modelId,
+                  k: 5
+                }
+              }
+            }
+          ]
         }
       }
     });
 
+    console.log(searchResponse.data.hits)
     const hits = searchResponse.data.hits.hits;
     const postIds = hits.map(hit => hit._id);
 
     // Fetch full documents from MongoDB using the IDs
-    const posts = await NewsPost.find({
+    const plainPosts = await NewsPost.find({
       _id: { $in: postIds }
-    }).sort({ createdAt: -1 });
+    })
+
+    const posts = plainPosts.map((post) => {
+      const score = hits.find(x => x._id === post.id)._score
+      return {...post._doc, score}
+    })
+    .sort((a, b) => b.score - a.score);
 
     res.json(posts);
   } catch (err) {
@@ -117,6 +150,9 @@ app.listen(PORT, async () => {
         initializeDefaultPosts()
       ])
     }
+
+    modelId = await getModelId()
+    console.log('Post Model ID: ', modelId)
 
     // Mark initialization as complete
     isInitialized = true;

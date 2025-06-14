@@ -17,6 +17,7 @@
         }
       },
       "index.knn": true,
+      "index.search.default_pipeline": "posts-hybrid-search",
       "default_pipeline": "posts-pipeline"
     },
     "mappings": {

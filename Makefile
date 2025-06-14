@@ -4,4 +4,4 @@ restart:
 	docker compose up -d --build --remove-orphans
 
 recreate:
-	docker compose down -v && docker compose up -d --build --remove-orphans
+	docker compose down --volumes && docker compose up -d --build --remove-orphans
