@@ -8,27 +8,45 @@ const NewsList = () => {
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const fetchAllPosts = useCallback(async () => {
+    try {
+      const response = await axios.get<NewsPost[]>('http://localhost:4000/api/news');
+      setPosts(response.data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch news posts');
+      console.error('Error fetching news posts:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await axios.get<NewsPost[]>('http://localhost:4000/api/news');
-        setPosts(response.data);
-        setError(null);
-      } catch (err) {
-        setError('Failed to fetch news posts');
-        console.error('Error fetching news posts:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchAllPosts();
+  }, [fetchAllPosts]);
 
-    fetchPosts();
-  }, []);
+  const handleSearchTermChange = useCallback(async (searchTerm: string) => {
+    if (!searchTerm.trim()) {
+      await fetchAllPosts();
+      return;
+    }
 
-  const handleSearch = useCallback((results: NewsPost[]) => {
-    setPosts(results);
-  }, []);
+    setIsSearching(true);
+    try {
+      const response = await axios.post<NewsPost[]>('http://localhost:4000/api/news/search', {
+        query: searchTerm
+      });
+      setPosts(response.data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to search news posts');
+      console.error('Error searching posts:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [fetchAllPosts]);
 
   if (loading) {
     return (
@@ -49,7 +67,14 @@ const NewsList = () => {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-gray-900">News Posts</h2>
-      <SearchBar onSearch={handleSearch} />
+      <div className="relative">
+        <SearchBar onSearchTermChange={handleSearchTermChange} />
+        {isSearching && (
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+          </div>
+        )}
+      </div>
       {posts.length === 0 ? (
         <p className="text-gray-500">No news posts found.</p>
       ) : (
@@ -79,4 +104,4 @@ const NewsList = () => {
   );
 };
 
-export default NewsList; 
+export default NewsList;
