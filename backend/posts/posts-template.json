@@ -15,7 +15,9 @@
             "type": "standard"
           }
         }
-      }
+      },
+      "index.knn": true,
+      "default_pipeline": "posts-pipeline"
     },
     "mappings": {
       "properties": {
@@ -28,13 +30,17 @@
             }
           }
         },
+        "title_vector": {
+          "type": "knn_vector",
+          "dimension": 768
+        },
         "description": {
           "type": "text",
           "analyzer": "standard"
         },
-        "uselessField": {
-          "type": "text",
-          "analyzer": "standard"
+        "description_vector": {
+          "type": "knn_vector",
+          "dimension": 768
         },
         "createdAt": {
           "type": "date"

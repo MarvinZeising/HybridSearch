@@ -1,0 +1,13 @@
+{
+  "processors": [
+    {
+      "text_embedding": {
+        "model_id": "MODEL_ID",
+        "field_map": {
+          "title": "title_vector",
+          "description": "description_vector"
+        }
+      }
+    }
+  ]
+}
