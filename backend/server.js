@@ -1,27 +1,18 @@
 // backend/server.js
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+const connectDB = require('./models/db');
+const NewsPost = require('./models/NewsPost');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongodb:27017/news?replicaSet=rs0';
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
-// NewsPost Schema
-const newsPostSchema = new mongoose.Schema({
-  title: String,
-  description: String,
-  createdAt: { type: Date, default: Date.now }
-});
-
-const NewsPost = mongoose.model('NewsPost', newsPostSchema);
+connectDB();
 
 // API endpoint to create a news post
 app.post('/api/news', async (req, res) => {
@@ -107,4 +98,29 @@ app.post('/api/news/search', async (req, res) => {
 });
 
 const PORT = 4000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, async () => {
+  console.log(`Server running on port ${PORT}`);
+
+  try {
+    console.log('Creating news posts collection');
+    NewsPost.createCollection()
+
+    // Check if we already have posts
+    const count = await NewsPost.countDocuments();
+    if (count === 0) {
+      console.log('No posts found, inserting default posts...');
+      
+      // Read and parse the default posts
+      const defaultPostsPath = path.join(__dirname, 'default-posts.json');
+      const defaultPosts = JSON.parse(fs.readFileSync(defaultPostsPath, 'utf8'));
+      
+      // Insert the posts
+      await NewsPost.insertMany(defaultPosts);
+      console.log('Default posts inserted successfully');
+    } else {
+      console.log('Database already contains posts, skipping default posts insertion');
+    }
+  } catch (error) {
+    console.error('Error inserting default posts:', error);
+  }
+});
