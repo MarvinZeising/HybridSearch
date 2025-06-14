@@ -12,6 +12,14 @@ function App() {
             <div className="flex justify-between items-center">
               <h1 className="text-xl font-semibold text-gray-900">News App</h1>
               <div className="space-x-4">
+                <a
+                  href="http://localhost:5601"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  Dashboard
+                </a>
                 <Link to="/" className="text-gray-600 hover:text-gray-900">
                   View Posts
                 </Link>
