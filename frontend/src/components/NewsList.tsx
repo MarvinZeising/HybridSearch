@@ -17,6 +17,7 @@ const NewsList = () => {
       setError(null);
     } catch (err) {
       setError('Failed to fetch news posts');
+      setPosts([]);
       console.error('Error fetching news posts:', err);
     } finally {
       setLoading(false);
@@ -42,6 +43,7 @@ const NewsList = () => {
       setError(null);
     } catch (err) {
       setError('Failed to search news posts');
+      setPosts([]);
       console.error('Error searching posts:', err);
     } finally {
       setIsSearching(false);
@@ -52,14 +54,6 @@ const NewsList = () => {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-        {error}
       </div>
     );
   }
@@ -75,6 +69,11 @@ const NewsList = () => {
           </div>
         )}
       </div>
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
       {posts.length === 0 ? (
         <p className="text-gray-500">No news posts found.</p>
       ) : (
