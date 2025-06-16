@@ -1,12 +1,14 @@
 import { useState, useEffect, memo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 interface SearchBarProps {
   onSearchTermChange: (term: string, useReranking: boolean) => void;
 }
 
 const SearchBar = memo(({ onSearchTermChange }: SearchBarProps) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [useReranking, setUseReranking] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
+  const [useReranking, setUseReranking] = useState(searchParams.get('rerank') === 'true');
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {

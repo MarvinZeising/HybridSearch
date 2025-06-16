@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import type { NewsPost } from '../types/news';
 import SearchBar from './SearchBar';
@@ -9,6 +9,7 @@ const NewsList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const fetchAllPosts = useCallback(async () => {
     try {
@@ -24,16 +25,7 @@ const NewsList = () => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchAllPosts();
-  }, [fetchAllPosts]);
-
-  const handleSearchTermChange = useCallback(async (searchTerm: string, useReranking: boolean) => {
-    if (!searchTerm.trim()) {
-      await fetchAllPosts();
-      return;
-    }
-
+  const performSearch = useCallback(async (searchTerm: string, useReranking: boolean) => {
     setIsSearching(true);
     try {
       const endpoint = useReranking ? '/api/news/search-reranked' : '/api/news/search';
@@ -48,8 +40,40 @@ const NewsList = () => {
       console.error('Error searching posts:', err);
     } finally {
       setIsSearching(false);
+      setLoading(false);
     }
-  }, [fetchAllPosts]);
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    const query = searchParams.get('q');
+    const useReranking = searchParams.get('rerank') === 'true';
+
+    if (query) {
+      performSearch(query, useReranking);
+    } else {
+      fetchAllPosts();
+    }
+  }, []); // Only run on mount
+
+  const handleSearchTermChange = useCallback(async (searchTerm: string, useReranking: boolean) => {
+    // Update URL search params
+    const newParams = new URLSearchParams();
+    if (searchTerm.trim()) {
+      newParams.set('q', searchTerm);
+      if (useReranking) {
+        newParams.set('rerank', 'true');
+      }
+    }
+    setSearchParams(newParams);
+
+    if (!searchTerm.trim()) {
+      await fetchAllPosts();
+      return;
+    }
+
+    await performSearch(searchTerm, useReranking);
+  }, [fetchAllPosts, performSearch, setSearchParams]);
 
   if (loading) {
     return (
