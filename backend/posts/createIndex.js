@@ -23,8 +23,8 @@ async function hasIndex() {
 async function createIndex() {
   try {
     await Promise.all([
-      createSearchPipeline().then(createIndexTemplate),
-      deployModel().then(createIngestPipeline)
+      deployModel('cross-encoder.json').then(createSearchPipeline).then(createIndexTemplate),
+      deployModel('sentence-transformer.json').then(createIngestPipeline)
     ])
 
     console.log(`Successfully created model, pipeline, and index template for posts`);
@@ -46,8 +46,8 @@ async function createIngestPipeline(modelId) {
   console.log('Created Ingest Pipeline: ', response.data)
 };
 
-async function createSearchPipeline() {
-  const pipeline = JSON.parse(fs.readFileSync(path.join(__dirname, 'posts-search-pipeline.json'), 'utf8'));
+async function createSearchPipeline(modelId) {
+  const pipeline = JSON.parse(fs.readFileSync(path.join(__dirname, 'posts-search-pipeline.json'), 'utf8').replace(/MODEL_ID/gm, modelId));
   const response = await axios.put(`http://opensearch:9200/_search/pipeline/posts-hybrid-search`, pipeline);
   console.log('Created Search Pipeline: ', response.data)
 };
