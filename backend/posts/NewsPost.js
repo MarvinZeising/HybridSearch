@@ -1,6 +1,10 @@
-const mongoose = require('mongoose');
-const fs = require('fs');
-const path = require('path');
+import mongoose from 'mongoose';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const NewsPostSchema = new mongoose.Schema({
   title: String,
@@ -19,11 +23,11 @@ async function initializeDefaultPosts() {
     const count = await NewsPost.countDocuments();
     if (count === 0) {
       console.log('No posts found, inserting default posts...');
-      
+
       // Read and parse the default posts
       const defaultPostsPath = path.join(__dirname, 'default-posts.json');
       const defaultPosts = JSON.parse(fs.readFileSync(defaultPostsPath, 'utf8'));
-      
+
       // Insert the posts
       await NewsPost.insertMany(defaultPosts);
       console.log('Default posts inserted successfully');
@@ -36,7 +40,4 @@ async function initializeDefaultPosts() {
   }
 }
 
-module.exports = {
-  NewsPost,
-  initializeDefaultPosts
-};
+export { NewsPost, initializeDefaultPosts };

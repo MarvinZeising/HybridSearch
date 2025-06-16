@@ -1,8 +1,11 @@
-const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
+import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import deployModel from '../models/deployModel.js';
 
-const sleep = (seconds) => new Promise(resolve => setTimeout(resolve, seconds * 1000));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function hasIndex() {
   try {
@@ -84,4 +87,4 @@ async function getModelId() {
   }
 }
 
-module.exports = { createIndex, hasIndex, getModelId };
+export { createIndex, hasIndex, getModelId };

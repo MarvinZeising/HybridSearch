@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 // Connect to MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/news?replicaSet=rs0';
 
-const connectDB = async () => {
+const connectMongoDB = async () => {
   try {
     await mongoose.connect(MONGODB_URI);
     console.log('MongoDB connected');
@@ -13,4 +13,4 @@ const connectDB = async () => {
   }
 };
 
-module.exports = connectDB; 
+export default connectMongoDB;

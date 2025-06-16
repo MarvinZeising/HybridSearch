@@ -1,9 +1,9 @@
-const express = require('express');
-const cors = require('cors');
-const axios = require('axios');
-const connectDB = require('./db');
-const { NewsPost, initializeDefaultPosts } = require('./posts/NewsPost');
-const { createIndex, hasIndex, getModelId } = require('./posts/createIndex');
+import express from 'express';
+import cors from 'cors';
+import axios from 'axios';
+import connectMongoDB from './mongodb.js';
+import { NewsPost, initializeDefaultPosts } from './posts/NewsPost.js';
+import { createIndex, hasIndex, getModelId } from './posts/createIndex.js';
 
 const app = express();
 app.use(cors());
@@ -14,7 +14,7 @@ let isInitialized = false;
 let modelId = ''
 
 // Connect to MongoDB
-connectDB();
+connectMongoDB();
 
 // Health check endpoint
 app.get('/health', (req, res) => {
