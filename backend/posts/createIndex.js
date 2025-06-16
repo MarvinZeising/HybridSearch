@@ -40,32 +40,6 @@ async function createIndexTemplate() {
   console.log('Created Index Template: ', response.data)
 }
 
-async function deployModel() {
-  const model = JSON.parse(fs.readFileSync(path.join(__dirname, 'model.json'), 'utf8'));
-  console.log('Deploying model ' + model.name + ' ...')
-
-  const response = await axios.post('http://opensearch:9200/_plugins/_ml/models/_register?deploy=true', model)
-
-  let i = 0
-  do {
-    try {
-      return await tryGetModelId(response.data.task_id)
-    } catch (error) {
-      await sleep(3);
-    }
-  } while (i++ < 60)
-
-  throw new Error('Model did not deploy within 3 minutes')
-}
-
-async function tryGetModelId(taskId) {
-  const task = (await axios.get("http://opensearch:9200/_plugins/_ml/tasks/" + taskId)).data
-  if (task.state === "COMPLETED") {
-    return task.model_id
-  }
-  throw new Error('not completed')
-}
-
 async function createIngestPipeline(modelId) {
   const pipeline = JSON.parse(fs.readFileSync(path.join(__dirname, 'posts-ingest-pipeline.json'), 'utf8').replace(/MODEL_ID/gm, modelId));
   const response = await axios.put(`http://opensearch:9200/_ingest/pipeline/posts-pipeline`, pipeline);
