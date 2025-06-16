@@ -29,7 +29,7 @@ async function createIndex() {
 
     console.log(`Successfully created model, pipeline, and index template for posts`);
   } catch (error) {
-    console.error('Error creating OpenSearch index:', error.message, error.response.data);
+    console.error('Error creating OpenSearch index:', error.message, error.response && error.response.data);
     throw error;
   }
 }

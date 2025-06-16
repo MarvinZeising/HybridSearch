@@ -1,5 +1,5 @@
 {
-  "name": "huggingface/cross-encoder/ms-marco-MiniLM-L-6-v2",
+  "name": "huggingface/cross-encoders/ms-marco-MiniLM-L-6-v2",
   "version": "1.0.2",
   "description": "The model can be used for Information Retrieval: Given a query, encode the query will all possible passages (e.g. retrieved with ElasticSearch). Then sort the passages in a decreasing order.",
   "model_format": "ONNX",
