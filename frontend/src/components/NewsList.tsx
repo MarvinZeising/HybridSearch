@@ -28,7 +28,7 @@ const NewsList = () => {
     fetchAllPosts();
   }, [fetchAllPosts]);
 
-  const handleSearchTermChange = useCallback(async (searchTerm: string) => {
+  const handleSearchTermChange = useCallback(async (searchTerm: string, useReranking: boolean) => {
     if (!searchTerm.trim()) {
       await fetchAllPosts();
       return;
@@ -36,7 +36,8 @@ const NewsList = () => {
 
     setIsSearching(true);
     try {
-      const response = await axios.post<NewsPost[]>('http://localhost:4000/api/news/search', {
+      const endpoint = useReranking ? '/api/news/search-reranked' : '/api/news/search';
+      const response = await axios.post<NewsPost[]>(`http://localhost:4000${endpoint}`, {
         query: searchTerm
       });
       setPosts(response.data);

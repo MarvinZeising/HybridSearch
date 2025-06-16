@@ -17,8 +17,7 @@
         }
       },
       "index.knn": true,
-      "index.search.default_pipeline": "posts-hybrid-search",
-      "default_pipeline": "posts-pipeline"
+      "default_pipeline": "posts-ingest-pipeline"
     },
     "mappings": {
       "properties": {
@@ -33,7 +32,7 @@
         },
         "title_vector": {
           "type": "knn_vector",
-          "dimension": 768
+          "dimension": 384
         },
         "description": {
           "type": "text",
@@ -41,7 +40,7 @@
         },
         "description_vector": {
           "type": "knn_vector",
-          "dimension": 768
+          "dimension": 384
         },
         "createdAt": {
           "type": "date"

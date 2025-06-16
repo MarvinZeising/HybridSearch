@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import axios from 'axios';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,6 +14,127 @@ const NewsPostSchema = new mongoose.Schema({
 });
 
 const NewsPost = mongoose.model('Post', NewsPostSchema);
+
+// Static method to search posts using OpenSearch
+NewsPost.searchWithReranking = async function(query, sentenceTransformerModelId) {
+  try {
+    const searchResponse = await axios.post('http://opensearch:9200/posts/_search?search_pipeline=posts-search-pipeline-reranked', {
+      query: {
+        hybrid: {
+          queries: [
+            {
+              multi_match: { // keyword search
+                query: query,
+                fields: ['title^4', 'description'],
+                type: 'best_fields',
+                fuzziness: 'AUTO'
+              }
+            },
+            {
+              neural: { // neural search using sentence transformer
+                title_vector: {
+                  query_text: query,
+                  model_id: sentenceTransformerModelId,
+                  k: 5
+                }
+              }
+            },
+            {
+              neural: { // neural search using sentence transformer
+                description_vector: {
+                  query_text: query,
+                  model_id: sentenceTransformerModelId,
+                  k: 5
+                }
+              }
+            }
+          ]
+        }
+      },
+      ext: {
+        rerank: { // rerank results using cross-encoder
+          query_context: {
+            query_text: query
+          }
+        }
+      }
+    });
+
+    const hits = searchResponse.data.hits.hits;
+    const postIds = hits.map(hit => hit._id);
+
+    // Fetch full documents from MongoDB using the IDs
+    const plainPosts = await this.find({
+      _id: { $in: postIds }
+    });
+
+    return plainPosts.map((post) => {
+      const score = hits.find(x => x._id === post.id)._score;
+      return {...post._doc, score};
+    })
+    .sort((a, b) => b.score - a.score);
+  } catch (error) {
+    console.error('Search error:', error.response?.data || error);
+    throw new Error('Failed to search posts');
+  }
+};
+
+// Static method to search posts using OpenSearch without reranking
+NewsPost.search = async function(query, sentenceTransformerModelId) {
+  try {
+    const searchResponse = await axios.post('http://opensearch:9200/posts/_search?search_pipeline=posts-search-pipeline', {
+      query: {
+        hybrid: {
+          queries: [
+            {
+              multi_match: { // keyword search
+                query: query,
+                fields: ['title^4', 'description'],
+                type: 'best_fields',
+                fuzziness: 'AUTO'
+              }
+            },
+            {
+              neural: { // neural search using sentence transformer
+                title_vector: {
+                  query_text: query,
+                  model_id: sentenceTransformerModelId,
+                  k: 5
+                }
+              }
+            },
+            {
+              neural: { // neural search using sentence transformer
+                description_vector: {
+                  query_text: query,
+                  model_id: sentenceTransformerModelId,
+                  k: 5
+                }
+              }
+            }
+          ]
+        }
+      }
+    });
+
+    const hits = searchResponse.data.hits.hits;
+    const postIds = hits.map(hit => hit._id);
+
+    // Fetch full documents from MongoDB using the IDs
+    const plainPosts = await this.find({
+      _id: { $in: postIds }
+    });
+
+    return plainPosts.map((post) => {
+      const score = hits.find(x => x._id === post.id)._score;
+      return {...post._doc, score};
+    })
+    .sort((a, b) => b.score - a.score);
+  } catch (error) {
+    console.error('Search error:', error.response?.data || error);
+    throw new Error('Failed to search posts');
+  }
+};
 
 async function initializeDefaultPosts() {
   try {

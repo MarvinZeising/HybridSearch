@@ -3,7 +3,7 @@ import cors from 'cors';
 import axios from 'axios';
 import connectMongoDB from './mongodb.js';
 import { NewsPost, initializeDefaultPosts } from './posts/NewsPost.js';
-import { createIndex, hasIndex, getModelId } from './posts/createIndex.js';
+import { createIndex, hasIndex, getSentenceTransformerModelId } from './posts/createIndex.js';
 
 const app = express();
 app.use(cors());
@@ -11,10 +11,7 @@ app.use(express.json());
 
 // Track initialization status
 let isInitialized = false;
-let modelId = ''
-
-// Connect to MongoDB
-connectMongoDB();
+let sentenceTransformerModelId = ''
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -77,64 +74,24 @@ app.put('/api/news/:id', async (req, res) => {
   }
 });
 
-// Search posts using OpenSearch
 app.post('/api/news/search', async (req, res) => {
   try {
     const { query } = req.body;
-
-    const searchResponse = await axios.post('http://opensearch:9200/posts/_search', {
-      query: {
-        hybrid: {
-          queries: [
-            {
-              multi_match: {
-                query: query,
-                fields: ['title^4', 'description'],
-                type: 'best_fields',
-                fuzziness: 'AUTO'
-              }
-            },
-            {
-              neural: {
-                title_vector: {
-                  query_text: query,
-                  model_id: modelId,
-                  k: 5
-                }
-              }
-            },
-            {
-              neural: {
-                description_vector: {
-                  query_text: query,
-                  model_id: modelId,
-                  k: 5
-                }
-              }
-            }
-          ]
-        }
-      }
-    });
-
-    console.log(searchResponse.data.hits)
-    const hits = searchResponse.data.hits.hits;
-    const postIds = hits.map(hit => hit._id);
-
-    // Fetch full documents from MongoDB using the IDs
-    const plainPosts = await NewsPost.find({
-      _id: { $in: postIds }
-    })
-
-    const posts = plainPosts.map((post) => {
-      const score = hits.find(x => x._id === post.id)._score
-      return {...post._doc, score}
-    })
-    .sort((a, b) => b.score - a.score);
-
+    const posts = await NewsPost.search(query, sentenceTransformerModelId);
     res.json(posts);
-  } catch (err) {
-    console.error('Search error:', err);
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Failed to search posts' });
+  }
+});
+
+app.post('/api/news/search-reranked', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const posts = await NewsPost.searchWithReranking(query, sentenceTransformerModelId);
+    res.json(posts);
+  } catch (error) {
+    console.error('Search error:', error);
     res.status(500).json({ error: 'Failed to search posts' });
   }
 });
@@ -142,6 +99,8 @@ app.post('/api/news/search', async (req, res) => {
 const PORT = 4000;
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
+
+  await connectMongoDB();
 
   try {
     if (!await hasIndex()) {
@@ -151,10 +110,9 @@ app.listen(PORT, async () => {
       ])
     }
 
-    modelId = await getModelId()
-    console.log('Post Model ID: ', modelId)
+    sentenceTransformerModelId = await getSentenceTransformerModelId()
+    console.log('Sentence Transformer Model ID: ', sentenceTransformerModelId)
 
-    // Mark initialization as complete
     isInitialized = true;
     console.log('Server initialization completed successfully');
   } catch (error) {
