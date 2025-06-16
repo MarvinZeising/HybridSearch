@@ -1,63 +1,20 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
-import type { NewsPost } from '../types/news';
+import {Link, useSearchParams} from 'react-router-dom';
+import {useQuery} from '@tanstack/react-query';
 import SearchBar from './SearchBar';
+import {fetchAllPosts, searchPosts} from "../queries.ts";
 
 const NewsList = () => {
-  const [posts, setPosts] = useState<NewsPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const query = searchParams.get('q') || '';
+  const useReranking = searchParams.get('rerank') === 'true';
 
-  const fetchAllPosts = useCallback(async () => {
-    try {
-      const response = await axios.get<NewsPost[]>('http://localhost:4000/api/news');
-      setPosts(response.data);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch news posts');
-      setPosts([]);
-      console.error('Error fetching news posts:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { data: posts = [], error } = useQuery({
+    queryKey: ['posts', query, useReranking],
+    queryFn: () => query ? searchPosts({ query, useReranking }) : fetchAllPosts(),
+    enabled: true,
+  });
 
-  const performSearch = useCallback(async (searchTerm: string, useReranking: boolean) => {
-    setIsSearching(true);
-    try {
-      const endpoint = useReranking ? '/api/news/search-reranked' : '/api/news/search';
-      const response = await axios.post<NewsPost[]>(`http://localhost:4000${endpoint}`, {
-        query: searchTerm
-      });
-      setPosts(response.data);
-      setError(null);
-    } catch (err) {
-      setError('Failed to search news posts');
-      setPosts([]);
-      console.error('Error searching posts:', err);
-    } finally {
-      setIsSearching(false);
-      setLoading(false);
-    }
-  }, []);
-
-  // Initial load
-  useEffect(() => {
-    const query = searchParams.get('q');
-    const useReranking = searchParams.get('rerank') === 'true';
-
-    if (query) {
-      performSearch(query, useReranking);
-    } else {
-      fetchAllPosts();
-    }
-  }, []); // Only run on mount
-
-  const handleSearchTermChange = useCallback(async (searchTerm: string, useReranking: boolean) => {
-    // Update URL search params
+  const handleSearchTermChange = (searchTerm: string, useReranking: boolean) => {
     const newParams = new URLSearchParams();
     if (searchTerm.trim()) {
       newParams.set('q', searchTerm);
@@ -66,40 +23,20 @@ const NewsList = () => {
       }
     }
     setSearchParams(newParams);
-
-    if (!searchTerm.trim()) {
-      await fetchAllPosts();
-      return;
-    }
-
-    await performSearch(searchTerm, useReranking);
-  }, [fetchAllPosts, performSearch, setSearchParams]);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
   }
 
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold text-gray-900">News Posts</h2>
       <div className="relative">
-        <SearchBar onSearchTermChange={handleSearchTermChange} />
-        {isSearching && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-          </div>
-        )}
+        <SearchBar key="searchbar" onSearchTermChange={handleSearchTermChange} />
       </div>
-      {error && (
+
+      {error ? (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-          {error}
+          Failed to {query ? 'search' : 'fetch'} news posts
         </div>
-      )}
-      {posts.length === 0 ? (
+      ) : posts.length === 0 ? (
         <p className="text-gray-500">No news posts found.</p>
       ) : (
         <div className="grid gap-6">
