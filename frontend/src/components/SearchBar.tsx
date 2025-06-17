@@ -17,7 +17,7 @@ const SearchBar = ({ onSearchTermChange }: SearchBarProps) => {
       }, 300);
       return () => clearTimeout(debounceTimer);
     }
-  }, [searchTerm]);
+  }, [searchTerm, useReranking]);
 
   return (
     <div className="mb-6">
