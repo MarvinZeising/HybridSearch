@@ -6,7 +6,8 @@ import type { NewsFormData, NewsPost } from '../types/news';
 const NewsForm = () => {
   const [formData, setFormData] = useState<NewsFormData>({
     title: '',
-    description: ''
+    description: '',
+    content: ''
   });
   const [status, setStatus] = useState<string>('');
 
@@ -21,11 +22,11 @@ const NewsForm = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus('submitting');
-    
+
     try {
       const response = await axios.post<NewsPost>('http://localhost:4000/api/news', formData);
       setStatus('success');
-      setFormData({ title: '', description: '' });
+      setFormData({ title: '', description: '', content: '' });
     } catch (error) {
       setStatus('error');
       console.error('Error creating news post:', error);
@@ -50,7 +51,7 @@ const NewsForm = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
-        
+
         <div className="space-y-2">
           <label htmlFor="description" className="block text-sm font-medium text-gray-700">
             Description
@@ -62,6 +63,20 @@ const NewsForm = () => {
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+            Content
+          </label>
+          <textarea
+            id="content"
+            name="content"
+            value={formData.content}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[300px] font-mono"
           />
         </div>
 
@@ -84,4 +99,4 @@ const NewsForm = () => {
   );
 };
 
-export default NewsForm; 
+export default NewsForm;

@@ -5,7 +5,8 @@
         "model_id": "MODEL_ID",
         "field_map": {
           "title": "title_vector",
-          "description": "description_vector"
+          "description": "description_vector",
+          "content": "content_vector"
         }
       }
     }

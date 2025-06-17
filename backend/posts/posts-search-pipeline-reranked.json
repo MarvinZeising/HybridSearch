@@ -21,7 +21,7 @@
           "model_id": "MODEL_ID"
         },
         "context": {
-          "document_fields": [ "title", "description"]
+          "document_fields": [ "title", "description", "content"]
         }
       }
     }

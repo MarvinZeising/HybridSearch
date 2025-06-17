@@ -24,8 +24,8 @@ app.get('/health', (req, res) => {
 // API endpoint to create a news post
 app.post('/api/news', async (req, res) => {
   try {
-    const { title, description } = req.body;
-    const post = new NewsPost({ title, description });
+    const { title, description, content } = req.body;
+    const post = new NewsPost({ title, description, content });
     await post.save();
     res.status(201).json(post);
   } catch (err) {
@@ -59,10 +59,10 @@ app.get('/api/news/:id', async (req, res) => {
 // Update a post
 app.put('/api/news/:id', async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { title, description, content } = req.body;
     const post = await NewsPost.findByIdAndUpdate(
       req.params.id,
-      { title, description },
+      { title, description, content },
       { new: true, runValidators: true }
     );
     if (!post) {

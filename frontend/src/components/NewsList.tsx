@@ -43,19 +43,27 @@ const NewsList = () => {
           {posts.map((post) => (
             <article key={post._id} className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">{post.title}</h3>
-              <p className="text-gray-600">{post.description}</p>
+              <p className="text-gray-600 mb-4">{post.description}</p>
               <div className="flex justify-between items-center mt-4">
                 {post.createdAt && (
                   <p className="text-sm text-gray-500">
                     Posted on {new Date(post.createdAt).toLocaleDateString()}
                   </p>
                 )}
-                <Link
-                  to={`/edit/${post._id}`}
-                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Edit
-                </Link>
+                <div className="space-x-3">
+                  <Link
+                    to={`/post/${post._id}`}
+                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Read More
+                  </Link>
+                  <Link
+                    to={`/edit/${post._id}`}
+                    className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Edit
+                  </Link>
+                </div>
               </div>
             </article>
           ))}

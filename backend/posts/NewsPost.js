@@ -8,8 +8,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const NewsPostSchema = new mongoose.Schema({
+  id: String,
   title: String,
   description: String,
+  content: String,
   createdAt: { type: Date, default: Date.now }
 });
 

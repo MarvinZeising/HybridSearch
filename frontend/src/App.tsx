@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import NewsForm from './components/NewsForm';
 import NewsList from './components/NewsList';
 import EditNewsForm from './components/EditNewsForm';
+import PostDetail from './components/PostDetail';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,6 +56,7 @@ function App() {
               <Route path="/" element={<NewsList />} />
               <Route path="/create" element={<NewsForm />} />
               <Route path="/edit/:id" element={<EditNewsForm />} />
+              <Route path="/post/:id" element={<PostDetail />} />
             </Routes>
           </main>
         </div>

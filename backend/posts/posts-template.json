@@ -21,6 +21,9 @@
     },
     "mappings": {
       "properties": {
+        "id": {
+          "type": "keyword"
+        },
         "title": {
           "type": "text",
           "analyzer": "standard",
@@ -39,6 +42,14 @@
           "analyzer": "standard"
         },
         "description_vector": {
+          "type": "knn_vector",
+          "dimension": 384
+        },
+        "content": {
+          "type": "text",
+          "analyzer": "standard"
+        },
+        "content_vector": {
           "type": "knn_vector",
           "dimension": 384
         },
