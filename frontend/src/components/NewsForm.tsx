@@ -24,7 +24,7 @@ const NewsForm = () => {
     setStatus('submitting');
 
     try {
-      const response = await axios.post<NewsPost>('http://localhost:4000/api/news', formData);
+      await axios.post<NewsPost>('http://localhost:4000/api/news', formData);
       setStatus('success');
       setFormData({ title: '', description: '', content: '' });
     } catch (error) {

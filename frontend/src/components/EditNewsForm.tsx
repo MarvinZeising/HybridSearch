@@ -1,41 +1,66 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { ChangeEvent, FormEvent } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import type { NewsFormData, NewsPost } from '../types/news';
-import { deletePost } from '../queries';
+import { deletePost, fetchPostById } from '../queries';
 
 const EditNewsForm = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState<NewsFormData>({
     title: '',
     description: '',
     content: ''
   });
   const [status, setStatus] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
+
+  const { data: post, isLoading } = useQuery({
+    queryKey: ['post', id],
+    queryFn: () => fetchPostById(id!),
+    enabled: !!id,
+  });
+
+  const updatePostMutation = useMutation({
+    mutationFn: async (data: NewsFormData) => {
+      const response = await axios.put<NewsPost>(`http://localhost:4000/api/news/${id}`, data);
+      return response;
+    },
+    onSuccess: () => {
+      setStatus('success');
+      // Invalidate both the post detail and posts list queries
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+    },
+    onError: () => {
+      setStatus('error');
+    }
+  });
+
+  const deletePostMutation = useMutation({
+    mutationFn: () => deletePost(id!),
+    onSuccess: () => {
+      // Invalidate both the post detail and posts list queries
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      navigate('/');
+    },
+    onError: () => {
+      setStatus('error');
+    }
+  });
 
   useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const response = await axios.get<NewsPost>(`http://localhost:4000/api/news/${id}`);
-        setFormData({
-          title: response.data.title,
-          description: response.data.description,
-          content: response.data.content
-        });
-      } catch (error) {
-        setStatus('error');
-        console.error('Error fetching post:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPost();
-  }, [id]);
+    if (post) {
+      setFormData({
+        title: post.title,
+        description: post.description,
+        content: post.content
+      });
+    }
+  }, [post]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -48,30 +73,14 @@ const EditNewsForm = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus('submitting');
-
-    try {
-      await axios.put<NewsPost>(`http://localhost:4000/api/news/${id}`, formData);
-      setStatus('success');
-    } catch (error) {
-      setStatus('error');
-      console.error('Error updating news post:', error);
-    }
+    updatePostMutation.mutate(formData);
   };
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
       return;
     }
-
-    setIsDeleting(true);
-    try {
-      await deletePost(id!);
-      navigate('/');
-    } catch (error) {
-      setStatus('error');
-      console.error('Error deleting post:', error);
-      setIsDeleting(false);
-    }
+    deletePostMutation.mutate();
   };
 
   if (isLoading) {
@@ -133,18 +142,18 @@ const EditNewsForm = () => {
           <button
             type="button"
             onClick={handleDelete}
-            disabled={isDeleting}
+            disabled={deletePostMutation.isPending}
             className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
-            {isDeleting ? 'Deleting...' : 'Delete Post'}
+            {deletePostMutation.isPending ? 'Deleting...' : 'Delete Post'}
           </button>
 
           <button
             type="submit"
-            disabled={status === 'submitting'}
+            disabled={updatePostMutation.isPending}
             className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
-            {status === 'submitting' ? 'Saving...' : 'Save Changes'}
+            {updatePostMutation.isPending ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
 

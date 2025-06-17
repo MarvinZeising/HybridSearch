@@ -74,6 +74,19 @@ app.put('/api/news/:id', async (req, res) => {
   }
 });
 
+// Delete a post
+app.delete('/api/news/:id', async (req, res) => {
+  try {
+    const post = await NewsPost.findByIdAndDelete(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete post' });
+  }
+});
+
 app.post('/api/news/search', async (req, res) => {
   try {
     const { query } = req.body;
