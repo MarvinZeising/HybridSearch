@@ -1,9 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import axios from 'axios';
 import connectMongoDB from './mongodb.js';
 import { NewsPost, initializeDefaultPosts } from './posts/NewsPost.js';
-import { createIndex, hasIndex, getSentenceTransformerModelId } from './posts/createIndex.js';
+import { createIndex } from './posts/createIndex.js';
+import deployModel from "./models/deployModel.js";
 
 const app = express();
 app.use(cors());
@@ -11,7 +11,6 @@ app.use(express.json());
 
 // Track initialization status
 let isInitialized = false;
-let sentenceTransformerModelId = ''
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -90,10 +89,10 @@ app.delete('/api/news/:id', async (req, res) => {
 app.post('/api/news/search', async (req, res) => {
   try {
     const { query } = req.body;
-    const posts = await NewsPost.search(query, sentenceTransformerModelId);
+    const posts = await NewsPost.search(query);
     res.json(posts);
   } catch (error) {
-    console.error('Search error:', error);
+    console.error('Search error:', error.error ? error.error.root_cause : error);
     res.status(500).json({ error: 'Failed to search posts' });
   }
 });
@@ -101,7 +100,7 @@ app.post('/api/news/search', async (req, res) => {
 app.post('/api/news/search-reranked', async (req, res) => {
   try {
     const { query } = req.body;
-    const posts = await NewsPost.searchWithReranking(query, sentenceTransformerModelId);
+    const posts = await NewsPost.searchWithReranking(query);
     res.json(posts);
   } catch (error) {
     console.error('Search error:', error);
@@ -116,15 +115,15 @@ app.listen(PORT, async () => {
   await connectMongoDB();
 
   try {
-    if (!await hasIndex()) {
-      await Promise.all([
-        createIndex(),
-        initializeDefaultPosts()
-      ])
-    }
+    const [sentenceTransformerModelId, rerankerModelId] = await Promise.all([
+      deployModel('sentence-transformer.json'),
+      deployModel('cross-encoder.json')
+    ])
 
-    sentenceTransformerModelId = await getSentenceTransformerModelId()
-    console.log('Sentence Transformer Model ID: ', sentenceTransformerModelId)
+    await Promise.all([
+      createIndex(sentenceTransformerModelId, rerankerModelId),
+      initializeDefaultPosts()
+    ])
 
     isInitialized = true;
     console.log('Server initialization completed successfully');

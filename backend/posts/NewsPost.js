@@ -17,7 +17,7 @@ const NewsPostSchema = new mongoose.Schema({
 const NewsPost = mongoose.model('Post', NewsPostSchema);
 
 // Static method to search posts using OpenSearch
-NewsPost.searchWithReranking = async function(query, sentenceTransformerModelId) {
+NewsPost.searchWithReranking = async function(query) {
   try {
     const searchResponse = await axios.post('http://opensearch:9200/posts/_search?search_pipeline=posts-search-pipeline-reranked', {
       query: {
@@ -38,7 +38,6 @@ NewsPost.searchWithReranking = async function(query, sentenceTransformerModelId)
                   neural: { // neural search using sentence transformer
                     'embeddings.knn': {
                       query_text: query,
-                      model_id: sentenceTransformerModelId,
                       k: 5
                     }
                   }
@@ -71,13 +70,13 @@ NewsPost.searchWithReranking = async function(query, sentenceTransformerModelId)
     })
     .sort((a, b) => b.score - a.score);
   } catch (error) {
-    console.error('Search error:', error.response?.data || error);
+    console.error('NewsPost: Search error:', error.response?.data || error);
     throw new Error('Failed to search posts');
   }
 };
 
 // Static method to search posts using OpenSearch without reranking
-NewsPost.search = async function(query, sentenceTransformerModelId) {
+NewsPost.search = async function(query) {
   try {
     const searchResponse = await axios.post('http://opensearch:9200/posts/_search?search_pipeline=posts-search-pipeline', {
       _source: {
@@ -103,7 +102,6 @@ NewsPost.search = async function(query, sentenceTransformerModelId) {
                   neural: { // neural search using sentence transformer
                     'embeddings.knn': {
                       query_text: query,
-                      model_id: sentenceTransformerModelId,
                       k: 5
                     }
                   }
@@ -129,7 +127,7 @@ NewsPost.search = async function(query, sentenceTransformerModelId) {
     })
     .sort((a, b) => b.score - a.score);
   } catch (error) {
-    console.error('Search error:', error.response?.data || error);
+    console.log('NewsPost: Search error:', error.response?.data, error.response?.data?.error?.root_cause);
     throw new Error('Failed to search posts');
   }
 };

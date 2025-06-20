@@ -17,7 +17,7 @@ async function deployModel(fileName) {
   let i = 0
   do {
     try {
-      return await tryGetModelId(response.data.task_id)
+      return await getModelIdByTask(response.data.task_id)
     } catch (error) {
       await sleep(3);
     }
@@ -26,7 +26,7 @@ async function deployModel(fileName) {
   throw new Error('Model did not deploy within 3 minutes')
 }
 
-async function tryGetModelId(taskId) {
+async function getModelIdByTask(taskId) {
   const task = (await axios.get("http://opensearch:9200/_plugins/_ml/tasks/" + taskId)).data
   if (task.state === "COMPLETED") {
     return task.model_id
