@@ -8,15 +8,10 @@
   ],
   "phase_results_processors": [
     {
-      "normalization-processor": {
-        "normalization": {
-          "technique": "min_max"
-        },
+      "score-ranker-processor": {
         "combination": {
-          "technique": "arithmetic_mean",
-          "parameters": {
-            "weights": [0.3, 0.7]
-          }
+          "technique": "rrf",
+          "rank_constant": 60
         }
       }
     }
