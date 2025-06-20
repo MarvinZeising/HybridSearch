@@ -94,20 +94,16 @@ Go to http://localhost:5601/app/searchRelevance and enter the following query:
           }
         },
         {
-          "neural": {
-            "title_vector": {
-              "query_text": "%SearchText%",
-              "model_id": "FksZeZcBjYUBdzG2UgCi",
-              "k": 5
-            }
-          }
-        },
-        {
-          "neural": {
-            "description_vector": {
-              "query_text": "%SearchText%",
-              "model_id": "FksZeZcBjYUBdzG2UgCi",
-              "k": 5
+          nested: {
+            path: 'embeddings',
+            query: {
+              neural: {
+                'embeddings.knn': {
+                  query_text: "%SearchText%",
+                  model_id: sentenceTransformerModelId,
+                  k: 5
+                }
+              }
             }
           }
         }

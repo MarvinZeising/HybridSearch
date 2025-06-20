@@ -63,7 +63,7 @@ async function createSearchPipelineReranked(modelId) {
 async function getSentenceTransformerModelId() {
   try {
     const response = await axios.get('http://opensearch:9200/_ingest/pipeline/posts-ingest-pipeline')
-    return response.data['posts-ingest-pipeline'].processors[0].text_embedding.model_id
+    return response.data['posts-ingest-pipeline'].processors[2].text_embedding.model_id
   } catch (error) {
     throw new Error(error.data)
   }

@@ -21,9 +21,6 @@
     },
     "mappings": {
       "properties": {
-        "id": {
-          "type": "keyword"
-        },
         "title": {
           "type": "text",
           "analyzer": "standard",
@@ -33,25 +30,22 @@
             }
           }
         },
-        "title_vector": {
-          "type": "knn_vector",
-          "dimension": 384
-        },
         "description": {
           "type": "text",
           "analyzer": "standard"
-        },
-        "description_vector": {
-          "type": "knn_vector",
-          "dimension": 384
         },
         "content": {
           "type": "text",
           "analyzer": "standard"
         },
-        "content_vector": {
-          "type": "knn_vector",
-          "dimension": 384
+        "embeddings": {
+          "type": "nested",
+          "properties": {
+            "knn": {
+              "type": "knn_vector",
+              "dimension": 384
+            }
+          }
         },
         "createdAt": {
           "type": "date"

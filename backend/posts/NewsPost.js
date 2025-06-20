@@ -32,20 +32,16 @@ NewsPost.searchWithReranking = async function(query, sentenceTransformerModelId)
               }
             },
             {
-              neural: { // neural search using sentence transformer
-                title_vector: {
-                  query_text: query,
-                  model_id: sentenceTransformerModelId,
-                  k: 5
-                }
-              }
-            },
-            {
-              neural: { // neural search using sentence transformer
-                description_vector: {
-                  query_text: query,
-                  model_id: sentenceTransformerModelId,
-                  k: 5
+              nested: {
+                path: 'embeddings',
+                query: {
+                  neural: { // neural search using sentence transformer
+                    'embeddings.knn': {
+                      query_text: query,
+                      model_id: sentenceTransformerModelId,
+                      k: 5
+                    }
+                  }
                 }
               }
             }
@@ -84,6 +80,11 @@ NewsPost.searchWithReranking = async function(query, sentenceTransformerModelId)
 NewsPost.search = async function(query, sentenceTransformerModelId) {
   try {
     const searchResponse = await axios.post('http://opensearch:9200/posts/_search?search_pipeline=posts-search-pipeline', {
+      _source: {
+        excludes: [
+          'embeddings'
+        ]
+      },
       query: {
         hybrid: {
           queries: [
@@ -96,20 +97,16 @@ NewsPost.search = async function(query, sentenceTransformerModelId) {
               }
             },
             {
-              neural: { // neural search using sentence transformer
-                title_vector: {
-                  query_text: query,
-                  model_id: sentenceTransformerModelId,
-                  k: 5
-                }
-              }
-            },
-            {
-              neural: { // neural search using sentence transformer
-                description_vector: {
-                  query_text: query,
-                  model_id: sentenceTransformerModelId,
-                  k: 5
+              nested: {
+                path: 'embeddings',
+                query: {
+                  neural: { // neural search using sentence transformer
+                    'embeddings.knn': {
+                      query_text: query,
+                      model_id: sentenceTransformerModelId,
+                      k: 5
+                    }
+                  }
                 }
               }
             }
