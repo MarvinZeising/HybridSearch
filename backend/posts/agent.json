@@ -1,0 +1,48 @@
+{
+  "name": "Chat Agent with RAG",
+  "type": "conversational",
+  "description": "this is a test agent",
+  "llm": {
+    "model_id": "your_llm_model_id",
+    "parameters": {
+      "max_iteration": 5,
+      "response_filter": "$.completion"
+    }
+  },
+  "memory": {
+    "type": "conversation_index"
+  },
+  "tools": [
+    {
+      "type": "VectorDBTool",
+      "name": "population_data_knowledge_base",
+      "description": "This tool provides population data of US cities.",
+      "parameters": {
+        "input": "${parameters.question}",
+        "index": "test_population_data",
+        "source_field": [
+          "population_description"
+        ],
+        "model_id": "your_text_embedding_model_id",
+        "embedding_field": "population_description_embedding",
+        "doc_size": 3
+      }
+    },
+    {
+      "type": "VectorDBTool",
+      "name": "tech_news_knowledge_base",
+      "description": "This tool provides recent tech news.",
+      "parameters": {
+        "input": "${parameters.question}",
+        "index": "test_tech_news",
+        "source_field": [
+          "passage"
+        ],
+        "model_id": "your_text_embedding_model_id",
+        "embedding_field": "passage_embedding",
+        "doc_size": 2
+      }
+    }
+  ],
+  "app_type": "chat_with_rag"
+}

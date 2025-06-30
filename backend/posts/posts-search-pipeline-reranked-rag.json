@@ -1,0 +1,42 @@
+{
+  "request_processors": [
+    {
+      "neural_query_enricher": {
+        "default_model_id": "MODEL_ID"
+      }
+    }
+  ],
+  "phase_results_processors": [
+    {
+      "score-ranker-processor": {
+        "combination": {
+          "technique": "rrf",
+          "rank_constant": 60
+        }
+      }
+    }
+  ],
+  "response_processors": [
+    {
+      "rerank": {
+        "ml_opensearch": {
+          "model_id": "RERANKER_MODEL_ID"
+        },
+        "context": {
+          "document_fields": [ "title", "content"]
+        }
+      }
+    },
+    {
+      "retrieval_augmented_generation": {
+        "model_id": "RAG_MODEL_ID",
+        "context_field_list": [
+          "title",
+          "content"
+        ],
+        "system_prompt": "You are a helpful assistant",
+        "user_instructions": "Generate a concise and informative answer in less than 100 words for the given question"
+      }
+    }
+  ]
+}

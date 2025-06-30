@@ -17,7 +17,7 @@ const NewsPostSchema = new mongoose.Schema({
 const NewsPost = mongoose.model('Post', NewsPostSchema);
 
 // Static method to search posts using OpenSearch
-NewsPost.searchWithReranking = async function(query) {
+NewsPost.searchWithReranking = async function(query, sentenceTransformerModelId) {
   try {
     const searchResponse = await axios.post('http://opensearch:9200/posts/_search?search_pipeline=posts-search-pipeline-reranked', {
       query: {
@@ -32,15 +32,11 @@ NewsPost.searchWithReranking = async function(query) {
               }
             },
             {
-              nested: {
-                path: 'embeddings',
-                query: {
-                  neural: { // neural search using sentence transformer
-                    'embeddings.knn': {
-                      query_text: query,
-                      k: 5
-                    }
-                  }
+              neural: { // neural search using sentence transformer
+                embeddings: {
+                  query_text: query,
+                  model_id: sentenceTransformerModelId,
+                  k: 5
                 }
               }
             }
@@ -70,20 +66,15 @@ NewsPost.searchWithReranking = async function(query) {
     })
     .sort((a, b) => b.score - a.score);
   } catch (error) {
-    console.error('NewsPost: Search error:', error.response?.data || error);
+    console.error('Search error:', error.response?.data || error);
     throw new Error('Failed to search posts');
   }
 };
 
 // Static method to search posts using OpenSearch without reranking
-NewsPost.search = async function(query) {
+NewsPost.search = async function(query, sentenceTransformerModelId) {
   try {
     const searchResponse = await axios.post('http://opensearch:9200/posts/_search?search_pipeline=posts-search-pipeline', {
-      _source: {
-        excludes: [
-          'embeddings'
-        ]
-      },
       query: {
         hybrid: {
           queries: [
@@ -97,11 +88,13 @@ NewsPost.search = async function(query) {
             },
             {
               nested: {
+                score_mode: 'max',
                 path: 'embeddings',
                 query: {
                   neural: { // neural search using sentence transformer
                     'embeddings.knn': {
                       query_text: query,
+                      model_id: sentenceTransformerModelId,
                       k: 5
                     }
                   }
@@ -127,7 +120,7 @@ NewsPost.search = async function(query) {
     })
     .sort((a, b) => b.score - a.score);
   } catch (error) {
-    console.log('NewsPost: Search error:', error.response?.data, error.response?.data?.error?.root_cause);
+    console.error('Search error:', error.response?.data || error);
     throw new Error('Failed to search posts');
   }
 };
