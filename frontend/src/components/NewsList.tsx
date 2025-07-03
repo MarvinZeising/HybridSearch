@@ -27,7 +27,15 @@ const NewsList = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold text-gray-900">News Posts</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold text-gray-900">News Posts</h2>
+        <Link
+          to="/create"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          Create Post
+        </Link>
+      </div>
       <div className="relative">
         <SearchBar key="searchbar" onSearchTermChange={handleSearchTermChange} />
       </div>
