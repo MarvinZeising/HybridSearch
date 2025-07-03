@@ -1,0 +1,36 @@
+{
+  "request_processors": [
+    {
+      "neural_query_enricher": {
+        "default_model_id": "MODEL_ID"
+      }
+    }
+  ],
+  "phase_results_processors": [
+    {
+      "normalization-processor": {
+        "normalization": {
+          "technique": "min_max"
+        },
+        "combination": {
+          "technique": "arithmetic_mean",
+          "parameters": {
+            "weights": [0.3, 0.7]
+          }
+        }
+      }
+    }
+  ],
+  "response_processors": [
+    {
+      "rerank": {
+        "ml_opensearch": {
+          "model_id": "RERANKER_MODEL_ID"
+        },
+        "context": {
+          "document_fields": [ "title", "content"]
+        }
+      }
+    }
+  ]
+}

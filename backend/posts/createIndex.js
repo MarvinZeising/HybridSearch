@@ -65,4 +65,53 @@ async function getSentenceTransformerModelId() {
   }
 }
 
-export { createIndex, getSentenceTransformerModelId };
+async function createPagesIndex(sentenceTransformerModelId, rerankerModelId) {
+  try {
+    await Promise.all([
+      createPagesIndexTemplate(),
+      createPagesIngestPipeline(sentenceTransformerModelId),
+      createPagesSearchPipeline(sentenceTransformerModelId),
+      createPagesSearchPipelineReranked(sentenceTransformerModelId, rerankerModelId),
+    ])
+    console.log(`Successfully created model, pipeline, and index template for pages`);
+  } catch (error) {
+    console.error('Error creating OpenSearch index for pages:', error.message, error.response && error.response.data);
+    throw error;
+  }
+}
+
+async function createPagesIndexTemplate() {
+  const schema = JSON.parse(fs.readFileSync(path.join(__dirname, '../pages/pages-template.json'), 'utf8'));
+  const response = await axios.put(`http://opensearch:9200/_index_template/pages`, schema);
+  console.log('Created Pages Index Template: ', response.data)
+}
+
+async function createPagesIngestPipeline(modelId) {
+  const pipeline = JSON.parse(
+    fs.readFileSync(path.join(__dirname, '../pages/pages-ingest-pipeline.json'), 'utf8')
+      .replace(/MODEL_ID/gm, modelId)
+  );
+  const response = await axios.put(`http://opensearch:9200/_ingest/pipeline/pages-ingest-pipeline`, pipeline);
+  console.log('Created Pages Ingest Pipeline: ', response.data)
+}
+
+async function createPagesSearchPipeline(sentenceTransformerModelId) {
+  const pipeline = JSON.parse(
+    fs.readFileSync(path.join(__dirname, '../pages/pages-search-pipeline.json'), 'utf8')
+      .replace(/MODEL_ID/gm, sentenceTransformerModelId)
+  );
+  const response = await axios.put(`http://opensearch:9200/_search/pipeline/pages-search-pipeline`, pipeline);
+  console.log('Created Pages Search Pipeline: ', response.data)
+}
+
+async function createPagesSearchPipelineReranked(sentenceTransformerModelId, rerankerModelId) {
+  const pipeline = JSON.parse(
+    fs.readFileSync(path.join(__dirname, '../pages/pages-search-pipeline-reranked.json'), 'utf8')
+      .replace(/RERANKER_MODEL_ID/gm, rerankerModelId)
+      .replace(/MODEL_ID/gm, sentenceTransformerModelId)
+  );
+  const response = await axios.put(`http://opensearch:9200/_search/pipeline/pages-search-pipeline-reranked`, pipeline);
+  console.log('Created Pages Search Pipeline Reranked: ', response.data)
+}
+
+export { createIndex, getSentenceTransformerModelId, createPagesIndex };

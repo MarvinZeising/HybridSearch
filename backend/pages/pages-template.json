@@ -1,0 +1,77 @@
+{
+  "index_patterns": [
+    "pages-*"
+  ],
+  "template": {
+    "aliases": {
+      "pages": {}
+    },
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 1,
+      "analysis": {
+        "analyzer": {
+          "standard": {
+            "type": "standard"
+          }
+        }
+      },
+      "index.knn": true,
+      "default_pipeline": "pages-ingest-pipeline"
+    },
+    "mappings": {
+      "properties": {
+        "title": {
+          "type": "text",
+          "analyzer": "standard",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "description": {
+          "type": "text",
+          "analyzer": "standard"
+        },
+        "content": {
+          "type": "text",
+          "analyzer": "standard"
+        },
+        "category": {
+          "type": "keyword"
+        },
+        "tags": {
+          "type": "keyword"
+        },
+        "isPublished": {
+          "type": "boolean"
+        },
+        "embeddings": {
+          "type": "nested",
+          "properties": {
+            "knn": {
+              "type": "knn_vector",
+              "dimension": 384,
+              "method": {
+                "name": "hnsw",
+                "space_type": "l2",
+                "engine": "faiss",
+                "parameters": {
+                  "ef_construction": 128,
+                  "m": 24
+                }
+              }
+            }
+          }
+        },
+        "createdAt": {
+          "type": "date"
+        },
+        "updatedAt": {
+          "type": "date"
+        }
+      }
+    }
+  }
+}

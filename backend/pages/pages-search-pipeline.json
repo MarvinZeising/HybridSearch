@@ -1,0 +1,19 @@
+{
+  "request_processors": [
+    {
+      "neural_query_enricher": {
+        "default_model_id": "MODEL_ID"
+      }
+    }
+  ],
+  "phase_results_processors": [
+    {
+      "score-ranker-processor": {
+        "combination": {
+          "technique": "rrf",
+          "rank_constant": 60
+        }
+      }
+    }
+  ]
+}

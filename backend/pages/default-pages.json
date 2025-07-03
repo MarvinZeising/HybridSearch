@@ -1,0 +1,44 @@
+[
+  {
+    "title": "Intranet Start Page",
+    "description": "Welcome to the company intranet. Use this page as your hub to access all important resources, news, and tools.",
+    "content": "# Welcome to the Intranet\n\nThis is your starting point for all company resources.\n\n- [HR Overview](#)\n- [Company Policies](#)\n- [IT Support](#)\n- [Department Pages](#)\n- [Country-Specific Info](#)\n\nUse the navigation to find what you need or search for specific topics.",
+    "category": "General",
+    "tags": ["hub", "start", "navigation"]
+  },
+  {
+    "title": "HR Overview",
+    "description": "Find information about benefits, leave, payroll, and HR contacts.",
+    "content": "# HR Overview\n\n- Benefits and Compensation\n- Leave and Absence Policies\n- Payroll Information\n- HR Contacts: hr@company.com\n\nFor more details, visit the [HR Portal](#).",
+    "category": "HR",
+    "tags": ["hr", "benefits", "payroll"]
+  },
+  {
+    "title": "Remote Work Policy",
+    "description": "Guidelines and requirements for remote and hybrid work.",
+    "content": "# Remote Work Policy\n\n- Eligibility\n- Home Office Setup\n- Security Requirements\n- Communication Expectations\n\nSee the full policy document [here](#).",
+    "category": "Policy",
+    "tags": ["remote", "policy", "work"]
+  },
+  {
+    "title": "IT Support & Best Practices",
+    "description": "How to get IT help and follow best practices for security and productivity.",
+    "content": "# IT Support\n\n- Submit a ticket: support@company.com\n- FAQ\n- Device Setup Guides\n- Security Best Practices\n\nFor urgent issues, call the IT hotline at 123-456-7890.",
+    "category": "IT",
+    "tags": ["it", "support", "security"]
+  },
+  {
+    "title": "Germany Office Info",
+    "description": "Resources and contacts for employees based in Germany.",
+    "content": "# Germany Office\n\n- Address: Example Str. 1, 12345 Berlin\n- Local HR: hr-germany@company.com\n- Public Holidays\n- Local Guidelines\n\nSee the [Germany Employee Handbook](#) for more.",
+    "category": "Country",
+    "tags": ["germany", "local", "office"]
+  },
+  {
+    "title": "Engineering Department Overview",
+    "description": "Key contacts, best practices, and onboarding for the engineering team.",
+    "content": "# Engineering Department\n\n- Team Leads\n- Coding Guidelines\n- Onboarding Checklist\n- Project Management Tools\n\nFor more, see the [Engineering Wiki](#).",
+    "category": "Department",
+    "tags": ["engineering", "onboarding", "guidelines"]
+  }
+]

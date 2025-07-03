@@ -2,8 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import connectMongoDB from './mongodb.js';
 import { NewsPost, initializeDefaultPosts } from './posts/NewsPost.js';
-import { createIndex } from './posts/createIndex.js';
+import { createIndex, createPagesIndex } from './posts/createIndex.js';
 import deployModel from "./models/deployModel.js";
+import { Page, initializeDefaultPages } from './pages/Page.js';
 
 const app = express();
 app.use(cors());
@@ -108,6 +109,96 @@ app.post('/api/news/search-reranked', async (req, res) => {
   }
 });
 
+// API endpoint to create a page
+app.post('/api/pages', async (req, res) => {
+  try {
+    const { title, description, content, category, tags, isPublished } = req.body;
+    const page = new Page({ title, description, content, category, tags, isPublished });
+    await page.save();
+    res.status(201).json(page);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create page' });
+  }
+});
+
+// Get all pages
+app.get('/api/pages', async (req, res) => {
+  try {
+    const pages = await Page.find().sort({ createdAt: -1 });
+    res.json(pages);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch pages' });
+  }
+});
+
+// Get a single page
+app.get('/api/pages/:id', async (req, res) => {
+  try {
+    const page = await Page.findById(req.params.id);
+    if (!page) {
+      return res.status(404).json({ error: 'Page not found' });
+    }
+    res.json(page);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch page' });
+  }
+});
+
+// Update a page
+app.put('/api/pages/:id', async (req, res) => {
+  try {
+    const { title, description, content, category, tags, isPublished } = req.body;
+    const page = await Page.findByIdAndUpdate(
+      req.params.id,
+      { title, description, content, category, tags, isPublished, updatedAt: new Date() },
+      { new: true, runValidators: true }
+    );
+    if (!page) {
+      return res.status(404).json({ error: 'Page not found' });
+    }
+    res.json(page);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update page' });
+  }
+});
+
+// Delete a page
+app.delete('/api/pages/:id', async (req, res) => {
+  try {
+    const page = await Page.findByIdAndDelete(req.params.id);
+    if (!page) {
+      return res.status(404).json({ error: 'Page not found' });
+    }
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete page' });
+  }
+});
+
+// Search pages
+app.post('/api/pages/search', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const pages = await Page.search(query);
+    res.json(pages);
+  } catch (error) {
+    console.error('Search error:', error.error ? error.error.root_cause : error);
+    res.status(500).json({ error: 'Failed to search pages' });
+  }
+});
+
+// Search pages with reranking
+app.post('/api/pages/search-reranked', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const pages = await Page.searchWithReranking(query);
+    res.json(pages);
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Failed to search pages' });
+  }
+});
+
 const PORT = 4000;
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
@@ -122,7 +213,9 @@ app.listen(PORT, async () => {
 
     await Promise.all([
       createIndex(sentenceTransformerModelId, rerankerModelId),
-      initializeDefaultPosts()
+      createPagesIndex(sentenceTransformerModelId, rerankerModelId),
+      initializeDefaultPosts(),
+      initializeDefaultPages()
     ])
 
     isInitialized = true;
