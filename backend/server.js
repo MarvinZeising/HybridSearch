@@ -219,7 +219,9 @@ app.listen(PORT, async () => {
     ])
 
     isInitialized = true;
+    console.log('--------------------------------------------');
     console.log('Server initialization completed successfully');
+    console.log('--------------------------------------------');
   } catch (error) {
     console.error('Error during initialization:', error);
     // Don't set isInitialized to true if there's an error

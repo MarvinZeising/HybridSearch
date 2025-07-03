@@ -70,6 +70,8 @@ services:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
       - plugins.ml_commons.only_run_on_ml_node=false
+      - plugins.ml_commons.memory_feature_enabled=true
+      - plugins.ml_commons.rag_pipeline_feature_enabled=true
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
       - "DISABLE_SECURITY_PLUGIN=true"
     ulimits:
