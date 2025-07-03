@@ -5,10 +5,10 @@ mongo-url = "mongodb://mongodb:27017/news?authSource=admin&directConnection=true
 elasticsearch-urls = ["http://opensearch:9200"]
 
 # Direct namespace mapping
-direct-read-namespaces = ["news.posts"]
+direct-read-namespaces = ["news.posts", "news.pages"]
 
 # Enable real-time sync
-change-stream-namespaces = ["news.posts"]
+change-stream-namespaces = ["news.posts", "news.pages"]
 
 # Enable verbose logging for debugging
 verbose = true
@@ -28,3 +28,7 @@ replay = true
 [[mapping]]
 namespace = "news.posts"
 index = "posts-1"
+
+[[mapping]]
+namespace = "news.pages"
+index = "pages-1"

@@ -4,6 +4,10 @@ import NewsForm from './components/NewsForm';
 import NewsList from './components/NewsList';
 import EditNewsForm from './components/EditNewsForm';
 import PostDetail from './components/PostDetail';
+import PageList from './components/PageList';
+import PageForm from './components/PageForm';
+import EditPageForm from './components/EditPageForm';
+import PageDetail from './components/PageDetail';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,7 +51,10 @@ function App() {
                     </svg>
                   </a>
                   <Link to="/" className="text-gray-600 hover:text-gray-900">
-                    View Posts
+                    News Posts
+                  </Link>
+                  <Link to="/pages" className="text-gray-600 hover:text-gray-900">
+                    Pages
                   </Link>
                 </div>
               </div>
@@ -60,6 +67,10 @@ function App() {
               <Route path="/create" element={<NewsForm />} />
               <Route path="/edit/:id" element={<EditNewsForm />} />
               <Route path="/post/:id" element={<PostDetail />} />
+              <Route path="/pages" element={<PageList />} />
+              <Route path="/pages/create" element={<PageForm />} />
+              <Route path="/pages/edit/:id" element={<EditPageForm />} />
+              <Route path="/pages/:id" element={<PageDetail />} />
             </Routes>
           </main>
         </div>
