@@ -90,7 +90,7 @@ app.delete('/api/news/:id', async (req, res) => {
 app.post('/api/news/search', async (req, res) => {
   try {
     const { query } = req.body;
-    const posts = await NewsPost.search(query);
+    const posts = await NewsPost.search(query, false);
     res.json(posts);
   } catch (error) {
     console.error('Search error:', error.error ? error.error.root_cause : error);
@@ -101,7 +101,7 @@ app.post('/api/news/search', async (req, res) => {
 app.post('/api/news/search-reranked', async (req, res) => {
   try {
     const { query } = req.body;
-    const posts = await NewsPost.searchWithReranking(query);
+    const posts = await NewsPost.search(query, true);
     res.json(posts);
   } catch (error) {
     console.error('Search error:', error);
@@ -179,7 +179,7 @@ app.delete('/api/pages/:id', async (req, res) => {
 app.post('/api/pages/search', async (req, res) => {
   try {
     const { query } = req.body;
-    const pages = await Page.search(query);
+    const pages = await Page.search(query, false);
     res.json(pages);
   } catch (error) {
     console.error('Search error:', error.error ? error.error.root_cause : error);
@@ -191,7 +191,7 @@ app.post('/api/pages/search', async (req, res) => {
 app.post('/api/pages/search-reranked', async (req, res) => {
   try {
     const { query } = req.body;
-    const pages = await Page.searchWithReranking(query);
+    const pages = await Page.search(query, true);
     res.json(pages);
   } catch (error) {
     console.error('Search error:', error);

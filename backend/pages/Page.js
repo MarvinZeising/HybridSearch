@@ -21,64 +21,10 @@ const PageSchema = new mongoose.Schema({
 const Page = mongoose.model('Page', PageSchema);
 
 // Static method to search pages using OpenSearch
-Page.searchWithReranking = async function(query, sentenceTransformerModelId) {
+Page.search = async function(query, useReranking = false) {
   try {
-    const searchResponse = await axios.post('http://opensearch:9200/pages/_search?search_pipeline=pages-search-pipeline-reranked', {
-      query: {
-        hybrid: {
-          queries: [
-            {
-              multi_match: { // keyword search
-                query: query,
-                fields: ['title^4', 'description^2', 'content'],
-                type: 'best_fields',
-                fuzziness: 'AUTO'
-              }
-            },
-            {
-              neural: { // neural search using sentence transformer
-                embeddings: {
-                  query_text: query,
-                  model_id: sentenceTransformerModelId,
-                  k: 5
-                }
-              }
-            }
-          ]
-        }
-      },
-      ext: {
-        rerank: { // rerank results using cross-encoder
-          query_context: {
-            query_text: query
-          }
-        }
-      }
-    });
-
-    const hits = searchResponse.data.hits.hits;
-    const pageIds = hits.map(hit => hit._id);
-
-    // Fetch full documents from MongoDB using the IDs
-    const plainPages = await this.find({
-      _id: { $in: pageIds }
-    });
-
-    return plainPages.map((page) => {
-      const score = hits.find(x => x._id === page.id)._score;
-      return {...page._doc, score};
-    })
-    .sort((a, b) => b.score - a.score);
-  } catch (error) {
-    console.error('Search error:', error.response?.data || error);
-    throw new Error('Failed to search pages');
-  }
-};
-
-// Static method to search pages using OpenSearch without reranking
-Page.search = async function(query, sentenceTransformerModelId) {
-  try {
-    const searchResponse = await axios.post('http://opensearch:9200/pages/_search?search_pipeline=pages-search-pipeline', {
+    const searchPipeline = useReranking ? 'pages-search-pipeline-reranked' : 'pages-search-pipeline';
+    const searchBody = {
       query: {
         hybrid: {
           queries: [
@@ -98,7 +44,6 @@ Page.search = async function(query, sentenceTransformerModelId) {
                   neural: { // neural search using sentence transformer
                     'embeddings.knn': {
                       query_text: query,
-                      model_id: sentenceTransformerModelId,
                       k: 5
                     }
                   }
@@ -108,7 +53,20 @@ Page.search = async function(query, sentenceTransformerModelId) {
           ]
         }
       }
-    });
+    };
+
+    // Add reranking context if using reranking
+    if (useReranking) {
+      searchBody.ext = {
+        rerank: { // rerank results using cross-encoder
+          query_context: {
+            query_text: query
+          }
+        }
+      };
+    }
+
+    const searchResponse = await axios.post(`http://opensearch:9200/pages/_search?search_pipeline=${searchPipeline}`, searchBody);
 
     const hits = searchResponse.data.hits.hits;
     const pageIds = hits.map(hit => hit._id);
