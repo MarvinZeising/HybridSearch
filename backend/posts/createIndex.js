@@ -114,4 +114,53 @@ async function createPagesSearchPipelineReranked(sentenceTransformerModelId, rer
   console.log('Created Pages Search Pipeline Reranked: ', response.data)
 }
 
-export { createIndex, getSentenceTransformerModelId, createPagesIndex };
+async function createUsersIndex(sentenceTransformerModelId, rerankerModelId) {
+  try {
+    await Promise.all([
+      createUsersIndexTemplate(),
+      createUsersIngestPipeline(sentenceTransformerModelId),
+      createUsersSearchPipeline(sentenceTransformerModelId),
+      createUsersSearchPipelineReranked(sentenceTransformerModelId, rerankerModelId),
+    ])
+    console.log(`Successfully created model, pipeline, and index template for users`);
+  } catch (error) {
+    console.error('Error creating OpenSearch index for users:', error.message, error.response && error.response.data);
+    throw error;
+  }
+}
+
+async function createUsersIndexTemplate() {
+  const schema = JSON.parse(fs.readFileSync(path.join(__dirname, '../users/users-template.json'), 'utf8'));
+  const response = await axios.put(`http://opensearch:9200/_index_template/users`, schema);
+  console.log('Created Users Index Template: ', response.data)
+}
+
+async function createUsersIngestPipeline(modelId) {
+  const pipeline = JSON.parse(
+    fs.readFileSync(path.join(__dirname, '../users/users-ingest-pipeline.json'), 'utf8')
+      .replace(/MODEL_ID/gm, modelId)
+  );
+  const response = await axios.put(`http://opensearch:9200/_ingest/pipeline/users-ingest-pipeline`, pipeline);
+  console.log('Created Users Ingest Pipeline: ', response.data)
+}
+
+async function createUsersSearchPipeline(sentenceTransformerModelId) {
+  const pipeline = JSON.parse(
+    fs.readFileSync(path.join(__dirname, '../users/users-search-pipeline.json'), 'utf8')
+      .replace(/MODEL_ID/gm, sentenceTransformerModelId)
+  );
+  const response = await axios.put(`http://opensearch:9200/_search/pipeline/users-search-pipeline`, pipeline);
+  console.log('Created Users Search Pipeline: ', response.data)
+}
+
+async function createUsersSearchPipelineReranked(sentenceTransformerModelId, rerankerModelId) {
+  const pipeline = JSON.parse(
+    fs.readFileSync(path.join(__dirname, '../users/users-search-pipeline-reranked.json'), 'utf8')
+      .replace(/RERANKER_MODEL_ID/gm, rerankerModelId)
+      .replace(/MODEL_ID/gm, sentenceTransformerModelId)
+  );
+  const response = await axios.put(`http://opensearch:9200/_search/pipeline/users-search-pipeline-reranked`, pipeline);
+  console.log('Created Users Search Pipeline Reranked: ', response.data)
+}
+
+export { createIndex, getSentenceTransformerModelId, createPagesIndex, createUsersIndex };

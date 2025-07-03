@@ -2,9 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import connectMongoDB from './mongodb.js';
 import { NewsPost, initializeDefaultPosts } from './posts/NewsPost.js';
-import { createIndex, createPagesIndex } from './posts/createIndex.js';
+import { createIndex, createPagesIndex, createUsersIndex } from './posts/createIndex.js';
 import deployModel from "./models/deployModel.js";
 import { Page, initializeDefaultPages } from './pages/Page.js';
+import { User, initializeDefaultUsers } from './users/User.js';
 
 const app = express();
 app.use(cors());
@@ -199,6 +200,130 @@ app.post('/api/pages/search-reranked', async (req, res) => {
   }
 });
 
+// API endpoint to create a user
+app.post('/api/users', async (req, res) => {
+  try {
+    const { firstName, lastName, email, jobTitle, department, managerId, employeeId, phone, location } = req.body;
+    const user = new User({
+      firstName,
+      lastName,
+      email,
+      jobTitle,
+      department,
+      managerId,
+      employeeId,
+      phone,
+      location
+    });
+    await user.save();
+    res.status(201).json(user);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create user' });
+  }
+});
+
+// Get all users
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find().populate('managerId', 'firstName lastName email jobTitle').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+// Get a single user
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).populate('managerId', 'firstName lastName email jobTitle');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch user' });
+  }
+});
+
+// Update a user
+app.put('/api/users/:id', async (req, res) => {
+  try {
+    const { firstName, lastName, email, jobTitle, department, managerId, employeeId, phone, location, isActive } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { firstName, lastName, email, jobTitle, department, managerId, employeeId, phone, location, isActive, updatedAt: new Date() },
+      { new: true, runValidators: true }
+    );
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update user' });
+  }
+});
+
+// Delete a user
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
+// Get users by department
+app.get('/api/users/department/:department', async (req, res) => {
+  try {
+    const users = await User.find({ department: req.params.department })
+      .populate('managerId', 'firstName lastName email jobTitle')
+      .sort({ firstName: 1, lastName: 1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch users by department' });
+  }
+});
+
+// Get users by manager
+app.get('/api/users/manager/:managerId', async (req, res) => {
+  try {
+    const users = await User.find({ managerId: req.params.managerId })
+      .populate('managerId', 'firstName lastName email jobTitle')
+      .sort({ firstName: 1, lastName: 1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch users by manager' });
+  }
+});
+
+// Search users
+app.post('/api/users/search', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const users = await User.search(query, false);
+    res.json(users);
+  } catch (error) {
+    console.error('Search error:', error.error ? error.error.root_cause : error);
+    res.status(500).json({ error: 'Failed to search users' });
+  }
+});
+
+// Search users with reranking
+app.post('/api/users/search-reranked', async (req, res) => {
+  try {
+    const { query } = req.body;
+    const users = await User.search(query, true);
+    res.json(users);
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Failed to search users' });
+  }
+});
+
 const PORT = 4000;
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
@@ -214,8 +339,10 @@ app.listen(PORT, async () => {
     await Promise.all([
       createIndex(sentenceTransformerModelId, rerankerModelId),
       createPagesIndex(sentenceTransformerModelId, rerankerModelId),
+      createUsersIndex(sentenceTransformerModelId, rerankerModelId),
       initializeDefaultPosts(),
-      initializeDefaultPages()
+      initializeDefaultPages(),
+      initializeDefaultUsers()
     ])
 
     isInitialized = true;

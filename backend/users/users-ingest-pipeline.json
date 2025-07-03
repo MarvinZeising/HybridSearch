@@ -1,0 +1,19 @@
+{
+  "description": "Pipeline for processing user documents",
+  "processors": [
+    {
+      "script": {
+        "lang": "painless",
+        "source": "ctx.fullName = ctx.firstName + ' ' + ctx.lastName"
+      }
+    },
+    {
+      "text_embedding": {
+        "model_id": "MODEL_ID",
+        "field_map": {
+          "fullName": "embedding"
+        }
+      }
+    }
+  ]
+}

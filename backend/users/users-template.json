@@ -1,0 +1,75 @@
+{
+  "index_patterns": ["users-*"],
+  "template": {
+    "settings": {
+      "index": {
+        "knn": true,
+        "knn.algo_param.ef_search": 100
+      }
+    },
+    "mappings": {
+      "properties": {
+        "firstName": {
+          "type": "text",
+          "analyzer": "standard"
+        },
+        "lastName": {
+          "type": "text",
+          "analyzer": "standard"
+        },
+        "email": {
+          "type": "keyword"
+        },
+        "jobTitle": {
+          "type": "text",
+          "analyzer": "standard"
+        },
+        "department": {
+          "type": "keyword"
+        },
+        "managerId": {
+          "type": "keyword"
+        },
+        "employeeId": {
+          "type": "keyword"
+        },
+        "hireDate": {
+          "type": "date"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "phone": {
+          "type": "keyword"
+        },
+        "location": {
+          "type": "text",
+          "analyzer": "standard"
+        },
+        "createdAt": {
+          "type": "date"
+        },
+        "updatedAt": {
+          "type": "date"
+        },
+        "fullName": {
+          "type": "text",
+          "analyzer": "standard"
+        },
+        "embedding": {
+          "type": "knn_vector",
+          "dimension": 384,
+          "method": {
+            "name": "hnsw",
+            "space_type": "cosinesimil",
+            "engine": "nmslib",
+            "parameters": {
+              "ef_construction": 128,
+              "m": 16
+            }
+          }
+        }
+      }
+    }
+  }
+}

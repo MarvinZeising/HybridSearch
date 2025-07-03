@@ -8,6 +8,15 @@ import PageList from './components/PageList';
 import PageForm from './components/PageForm';
 import EditPageForm from './components/EditPageForm';
 import PageDetail from './components/PageDetail';
+import UserList from './components/UserList';
+import UserForm from './components/UserForm';
+import UserSearch from './components/UserSearch';
+import { useParams } from 'react-router-dom';
+
+const EditUserForm: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  return <UserForm userId={id} />;
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +65,9 @@ function App() {
                   <Link to="/pages" className="text-gray-600 hover:text-gray-900">
                     Pages
                   </Link>
+                  <Link to="/users" className="text-gray-600 hover:text-gray-900">
+                    Employees
+                  </Link>
                 </div>
               </div>
             </div>
@@ -71,6 +83,10 @@ function App() {
               <Route path="/pages/create" element={<PageForm />} />
               <Route path="/pages/edit/:id" element={<EditPageForm />} />
               <Route path="/pages/:id" element={<PageDetail />} />
+              <Route path="/users" element={<UserList />} />
+              <Route path="/users/search" element={<UserSearch />} />
+              <Route path="/users/new" element={<UserForm />} />
+              <Route path="/users/edit/:id" element={<EditUserForm />} />
             </Routes>
           </main>
         </div>
