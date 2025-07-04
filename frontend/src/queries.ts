@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { NewsPost, NewsFormData } from './types/news';
 import type { Page, PageFormData } from './types/pages';
 import type { User, CreateUserRequest, UpdateUserRequest } from './types/users';
+import type { SearchRequest, MultiSearchResponse } from './types/search';
 
 export const fetchAllPosts = async (): Promise<NewsPost[]> => {
   const response = await axios.get<NewsPost[]>('http://localhost:4000/api/news');
@@ -82,5 +83,13 @@ export const fetchUsersByManager = async (managerId: string): Promise<User[]> =>
 export const searchUsers = async ({ query, useReranking }: { query: string, useReranking: boolean }): Promise<User[]> => {
   const endpoint = useReranking ? '/api/users/search-reranked' : '/api/users/search';
   const response = await axios.post<User[]>(`http://localhost:4000${endpoint}`, {query});
+  return response.data;
+};
+
+export const multiSearch = async ({ query, useReranking }: SearchRequest): Promise<MultiSearchResponse> => {
+  const response = await axios.post<MultiSearchResponse>('http://localhost:4000/api/search', {
+    query,
+    useReranking: useReranking || false
+  });
   return response.data;
 };

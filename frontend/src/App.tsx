@@ -11,6 +11,7 @@ import PageDetail from './components/PageDetail';
 import UserList from './components/UserList';
 import UserForm from './components/UserForm';
 import UserSearch from './components/UserSearch';
+import CentralSearch from './components/CentralSearch';
 import { useParams } from 'react-router-dom';
 
 const EditUserForm: React.FC = () => {
@@ -33,10 +34,11 @@ function App() {
       <Router>
         <div className="min-h-screen bg-gray-100">
           <nav className="bg-white shadow-sm">
-            <div className="max-w-3xl mx-auto px-4 py-4">
+            <div className="max-w-4xl mx-auto px-4 py-4">
               <div className="flex justify-between items-center">
-                <h1 className="text-xl font-semibold text-gray-900">Intranet</h1>
                 <div className="flex items-center space-x-4">
+                  <h1 className="text-xl font-semibold text-gray-900">Intranet</h1>
+
                   <a
                     href="http://localhost:5601"
                     target="_blank"
@@ -48,6 +50,7 @@ function App() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </a>
+
                   <a
                     href="http://localhost:8081"
                     target="_blank"
@@ -59,6 +62,13 @@ function App() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
                     </svg>
                   </a>
+                </div>
+
+                <Link to="/search" className="text-gray-600 hover:text-gray-900">
+                  Universal Search
+                </Link>
+
+                <div className="flex items-center space-x-4">
                   <Link to="/" className="text-gray-600 hover:text-gray-900">
                     News Posts
                   </Link>
@@ -76,6 +86,7 @@ function App() {
           <main className="max-w-4xl mx-auto px-4 py-8">
             <Routes>
               <Route path="/" element={<NewsList />} />
+              <Route path="/search" element={<CentralSearch />} />
               <Route path="/create" element={<NewsForm />} />
               <Route path="/edit/:id" element={<EditNewsForm />} />
               <Route path="/post/:id" element={<PostDetail />} />

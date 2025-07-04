@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generateProfilePhoto } from './profilePhotoUtils.js';
+import axios from 'axios';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -82,7 +83,7 @@ User.search = async function(query, useReranking = false) {
       };
     }
 
-    const searchResponse = await axios.post(`http://opensearch:9200/users-1/_search?search_pipeline=${searchPipeline}`, searchBody);
+    const searchResponse = await axios.post(`http://opensearch:9200/users/_search?search_pipeline=${searchPipeline}`, searchBody);
 
     const hits = searchResponse.data.hits.hits;
     const userIds = hits.map(hit => hit._id);

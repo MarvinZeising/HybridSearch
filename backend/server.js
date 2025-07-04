@@ -6,6 +6,7 @@ import { createIndex, createPagesIndex, createUsersIndex } from './posts/createI
 import deployModel from "./models/deployModel.js";
 import { Page, initializeDefaultPages } from './pages/Page.js';
 import { User, initializeDefaultUsers } from './users/User.js';
+import axios from 'axios'; // Added for multisearch
 
 const app = express();
 app.use(cors());
@@ -322,6 +323,207 @@ app.post('/api/users/search-reranked', async (req, res) => {
   } catch (error) {
     console.error('Search error:', error);
     res.status(500).json({ error: 'Failed to search users' });
+  }
+});
+
+// Central multisearch endpoint
+app.post('/api/search', async (req, res) => {
+  try {
+    const { query, useReranking = false } = req.body;
+
+    // Build search requests for all three indices
+    const postsSearchPipeline = useReranking ? 'posts-search-pipeline-reranked' : 'posts-search-pipeline';
+    const pagesSearchPipeline = useReranking ? 'pages-search-pipeline-reranked' : 'pages-search-pipeline';
+    const usersSearchPipeline = useReranking ? 'users-search-pipeline-reranked' : 'users-search-pipeline';
+
+    const postsQuery = {
+      query: {
+        hybrid: {
+          queries: [
+            {
+              multi_match: {
+                query: query,
+                fields: ['title^4', 'description'],
+                type: 'best_fields',
+                fuzziness: 'AUTO'
+              }
+            },
+            {
+              nested: {
+                score_mode: 'max',
+                path: 'embeddings',
+                query: {
+                  neural: {
+                    'embeddings.knn': {
+                      query_text: query,
+                      k: 5
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      search_pipeline: postsSearchPipeline
+    };
+
+    const pagesQuery = {
+      query: {
+        hybrid: {
+          queries: [
+            {
+              multi_match: {
+                query: query,
+                fields: ['title^4', 'description^2', 'content'],
+                type: 'best_fields',
+                fuzziness: 'AUTO'
+              }
+            },
+            {
+              nested: {
+                score_mode: 'max',
+                path: 'embeddings',
+                query: {
+                  neural: {
+                    'embeddings.knn': {
+                      query_text: query,
+                      k: 5
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      search_pipeline: pagesSearchPipeline
+    };
+
+    const usersQuery = {
+      query: {
+        hybrid: {
+          queries: [
+            {
+              multi_match: {
+                query: query,
+                fields: ['firstName^3', 'lastName^3', 'jobTitle^2', 'department^2', 'fullName^4'],
+                type: 'best_fields',
+                fuzziness: 'AUTO'
+              }
+            },
+            {
+              neural: {
+                embedding: {
+                  query_text: query,
+                  k: 5
+                }
+              }
+            }
+          ]
+        }
+      },
+      search_pipeline: usersSearchPipeline
+    };
+
+    // Add reranking context if using reranking
+    if (useReranking) {
+      postsQuery.ext = {
+        rerank: {
+          query_context: {
+            query_text: query
+          }
+        }
+      };
+
+      pagesQuery.ext = {
+        rerank: {
+          query_context: {
+            query_text: query
+          }
+        }
+      };
+
+      usersQuery.ext = {
+        rerank: {
+          query_context: {
+            query_text: query
+          }
+        }
+      };
+    }
+
+    // Build multisearch request body
+    const msearchBody = [
+      { index: 'posts' },
+      postsQuery,
+      { index: 'pages' },
+      pagesQuery,
+      { index: 'users' },
+      usersQuery
+    ];
+
+    // Execute multisearch
+    const searchResponse = await axios.post(
+      'http://opensearch:9200/_msearch',
+      msearchBody.map(item => JSON.stringify(item)).join('\n') + '\n',
+      {
+        headers: {
+          'Content-Type': 'application/x-ndjson'
+        }
+      }
+    );
+
+    const responses = searchResponse.data.responses;
+
+    // Extract IDs from each response
+    const postsHits = responses[0].hits?.hits || [];
+    const pagesHits = responses[1].hits?.hits || [];
+    const usersHits = responses[2].hits?.hits || [];
+
+    const postIds = postsHits.map(hit => hit._id);
+    const pageIds = pagesHits.map(hit => hit._id);
+    const userIds = usersHits.map(hit => hit._id);
+
+    // Fetch full documents from MongoDB
+    const [posts, pages, users] = await Promise.all([
+      postIds.length > 0 ? NewsPost.find({ _id: { $in: postIds } }) : [],
+      pageIds.length > 0 ? Page.find({ _id: { $in: pageIds } }) : [],
+      userIds.length > 0 ? User.find({ _id: { $in: userIds } }).populate('managerId', 'firstName lastName email jobTitle') : []
+    ]);
+
+    // Add scores and type information to results
+    const postsWithScores = posts.map(post => {
+      const score = postsHits.find(hit => hit._id === post.id)?._score || 0;
+      return { ...post._doc, score, type: 'post' };
+    });
+
+    const pagesWithScores = pages.map(page => {
+      const score = pagesHits.find(hit => hit._id === page.id)?._score || 0;
+      return { ...page._doc, score, type: 'page' };
+    });
+
+    const usersWithScores = users.map(user => {
+      const score = usersHits.find(hit => hit._id === user.id)?._score || 0;
+      return { ...user._doc, score, type: 'user' };
+    });
+
+    // Combine all results and sort by score
+    const allResults = [...postsWithScores, ...pagesWithScores, ...usersWithScores]
+      .sort((a, b) => b.score - a.score);
+
+    res.json({
+      results: allResults,
+      totalHits: {
+        posts: responses[0].hits?.total?.value || 0,
+        pages: responses[1].hits?.total?.value || 0,
+        users: responses[2].hits?.total?.value || 0
+      }
+    });
+
+  } catch (error) {
+    console.error('Multisearch error:', error.response?.data || error);
+    res.status(500).json({ error: 'Failed to perform search' });
   }
 });
 

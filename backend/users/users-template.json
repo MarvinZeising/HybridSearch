@@ -1,6 +1,9 @@
 {
   "index_patterns": ["users-*"],
   "template": {
+    "aliases": {
+      "users": {}
+    },
     "settings": {
       "index": {
         "knn": true,
