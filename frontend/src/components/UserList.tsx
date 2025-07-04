@@ -43,7 +43,7 @@ const UserList: React.FC = () => {
   if (error) return <div className="text-red-600 text-center py-8">{error}</div>;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-full px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Employees</h1>
         <div className="flex gap-2">
@@ -62,7 +62,7 @@ const UserList: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+      <div className="bg-white shadow-md rounded-lg overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>

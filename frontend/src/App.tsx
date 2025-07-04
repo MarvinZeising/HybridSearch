@@ -73,7 +73,7 @@ function App() {
             </div>
           </nav>
 
-          <main className="max-w-3xl mx-auto px-4 py-8">
+          <main className="max-w-4xl mx-auto px-4 py-8">
             <Routes>
               <Route path="/" element={<NewsList />} />
               <Route path="/create" element={<NewsForm />} />
