@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { generateProfilePhoto } from './profilePhotoUtils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,6 +19,7 @@ const UserSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   phone: String,
   location: String,
+  profilePhoto: { type: String, default: null }, // URL or path to profile photo
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
@@ -29,6 +31,14 @@ UserSchema.virtual('fullName').get(function() {
 
 // Ensure virtual fields are serialized
 UserSchema.set('toJSON', { virtuals: true });
+
+// Pre-save middleware to generate profile photo if not provided
+UserSchema.pre('save', function(next) {
+  if (!this.profilePhoto && this.firstName && this.lastName && this.department) {
+    this.profilePhoto = generateProfilePhoto(this.firstName, this.lastName, this.department);
+  }
+  next();
+});
 
 const User = mongoose.model('User', UserSchema);
 

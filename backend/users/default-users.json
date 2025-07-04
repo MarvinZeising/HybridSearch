@@ -10,7 +10,8 @@
     "hireDate": "2020-01-15T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0101",
-    "location": "New York"
+    "location": "New York",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=SarahJohnson&backgroundColor=b6e3f4"
   },
   {
     "firstName": "Michael",
@@ -23,7 +24,8 @@
     "hireDate": "2020-03-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0102",
-    "location": "San Francisco"
+    "location": "San Francisco",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=MichaelChen&backgroundColor=ffdfbf"
   },
   {
     "firstName": "Emily",
@@ -36,7 +38,8 @@
     "hireDate": "2020-02-15T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0103",
-    "location": "New York"
+    "location": "New York",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=EmilyRodriguez&backgroundColor=d1d4f9"
   },
   {
     "firstName": "David",
@@ -49,7 +52,8 @@
     "hireDate": "2020-04-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0104",
-    "location": "Los Angeles"
+    "location": "Los Angeles",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=DavidKim&backgroundColor=ffd5dc"
   },
   {
     "firstName": "Lisa",
@@ -62,7 +66,8 @@
     "hireDate": "2020-05-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0105",
-    "location": "New York"
+    "location": "New York",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=LisaThompson&backgroundColor=d4edda"
   },
   {
     "firstName": "James",
@@ -75,7 +80,8 @@
     "hireDate": "2020-06-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0106",
-    "location": "San Francisco"
+    "location": "San Francisco",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=JamesWilson&backgroundColor=ffdfbf"
   },
   {
     "firstName": "Jennifer",
@@ -88,7 +94,8 @@
     "hireDate": "2020-07-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0107",
-    "location": "San Francisco"
+    "location": "San Francisco",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=JenniferBrown&backgroundColor=ffdfbf"
   },
   {
     "firstName": "Robert",
@@ -101,7 +108,8 @@
     "hireDate": "2021-01-15T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0108",
-    "location": "San Francisco"
+    "location": "San Francisco",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=RobertDavis&backgroundColor=ffdfbf"
   },
   {
     "firstName": "Amanda",
@@ -114,7 +122,8 @@
     "hireDate": "2021-03-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0109",
-    "location": "San Francisco"
+    "location": "San Francisco",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=AmandaGarcia&backgroundColor=ffdfbf"
   },
   {
     "firstName": "Thomas",
@@ -127,7 +136,8 @@
     "hireDate": "2021-04-15T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0110",
-    "location": "San Francisco"
+    "location": "San Francisco",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=ThomasMartinez&backgroundColor=ffdfbf"
   },
   {
     "firstName": "Rachel",
@@ -140,7 +150,8 @@
     "hireDate": "2020-08-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0111",
-    "location": "New York"
+    "location": "New York",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=RachelAnderson&backgroundColor=d1d4f9"
   },
   {
     "firstName": "Christopher",
@@ -153,7 +164,8 @@
     "hireDate": "2021-02-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0112",
-    "location": "New York"
+    "location": "New York",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=ChristopherTaylor&backgroundColor=d1d4f9"
   },
   {
     "firstName": "Nicole",
@@ -166,7 +178,8 @@
     "hireDate": "2020-09-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0113",
-    "location": "Los Angeles"
+    "location": "Los Angeles",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=NicoleWhite&backgroundColor=ffd5dc"
   },
   {
     "firstName": "Kevin",
@@ -179,7 +192,8 @@
     "hireDate": "2021-05-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0114",
-    "location": "Los Angeles"
+    "location": "Los Angeles",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=KevinLee&backgroundColor=ffd5dc"
   },
   {
     "firstName": "Stephanie",
@@ -192,7 +206,8 @@
     "hireDate": "2020-10-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0115",
-    "location": "New York"
+    "location": "New York",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=StephanieClark&backgroundColor=d4edda"
   },
   {
     "firstName": "Daniel",
@@ -205,7 +220,8 @@
     "hireDate": "2021-06-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0116",
-    "location": "New York"
+    "location": "New York",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=DanielLewis&backgroundColor=d4edda"
   },
   {
     "firstName": "Michelle",
@@ -218,7 +234,8 @@
     "hireDate": "2021-07-15T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0117",
-    "location": "New York"
+    "location": "New York",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=MichelleWalker&backgroundColor=d4edda"
   },
   {
     "firstName": "Ryan",
@@ -231,7 +248,8 @@
     "hireDate": "2021-08-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0118",
-    "location": "San Francisco"
+    "location": "San Francisco",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=RyanHall&backgroundColor=ffdfbf"
   },
   {
     "firstName": "Jessica",
@@ -244,7 +262,8 @@
     "hireDate": "2021-09-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0119",
-    "location": "San Francisco"
+    "location": "San Francisco",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=JessicaAllen&backgroundColor=ffdfbf"
   },
   {
     "firstName": "Andrew",
@@ -257,6 +276,7 @@
     "hireDate": "2020-11-01T00:00:00.000Z",
     "isActive": true,
     "phone": "+1-555-0120",
-    "location": "San Francisco"
+    "location": "San Francisco",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=AndrewYoung&backgroundColor=ffdfbf"
   }
 ]

@@ -203,7 +203,7 @@ app.post('/api/pages/search-reranked', async (req, res) => {
 // API endpoint to create a user
 app.post('/api/users', async (req, res) => {
   try {
-    const { firstName, lastName, email, jobTitle, department, managerId, employeeId, phone, location } = req.body;
+    const { firstName, lastName, email, jobTitle, department, managerId, employeeId, phone, location, profilePhoto } = req.body;
     const user = new User({
       firstName,
       lastName,
@@ -213,7 +213,8 @@ app.post('/api/users', async (req, res) => {
       managerId,
       employeeId,
       phone,
-      location
+      location,
+      profilePhoto
     });
     await user.save();
     res.status(201).json(user);
@@ -248,10 +249,10 @@ app.get('/api/users/:id', async (req, res) => {
 // Update a user
 app.put('/api/users/:id', async (req, res) => {
   try {
-    const { firstName, lastName, email, jobTitle, department, managerId, employeeId, phone, location, isActive } = req.body;
+    const { firstName, lastName, email, jobTitle, department, managerId, employeeId, phone, location, profilePhoto, isActive } = req.body;
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      { firstName, lastName, email, jobTitle, department, managerId, employeeId, phone, location, isActive, updatedAt: new Date() },
+      { firstName, lastName, email, jobTitle, department, managerId, employeeId, phone, location, profilePhoto, isActive, updatedAt: new Date() },
       { new: true, runValidators: true }
     );
     if (!user) {

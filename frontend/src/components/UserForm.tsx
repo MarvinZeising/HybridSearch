@@ -19,7 +19,8 @@ const UserForm: React.FC<UserFormProps> = ({ userId, onSuccess }) => {
     managerId: null,
     employeeId: '',
     phone: '',
-    location: ''
+    location: '',
+    profilePhoto: ''
   });
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
@@ -56,7 +57,8 @@ const UserForm: React.FC<UserFormProps> = ({ userId, onSuccess }) => {
         managerId: user.managerId?._id || null,
         employeeId: user.employeeId,
         phone: user.phone || '',
-        location: user.location || ''
+        location: user.location || '',
+        profilePhoto: user.profilePhoto || ''
       });
     } catch (err) {
       setError('Failed to load user');
@@ -244,6 +246,23 @@ const UserForm: React.FC<UserFormProps> = ({ userId, onSuccess }) => {
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Profile Photo URL
+            </label>
+            <input
+              type="url"
+              name="profilePhoto"
+              value={formData.profilePhoto}
+              onChange={handleChange}
+              placeholder="https://api.dicebear.com/7.x/avataaars/svg?seed=..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Leave empty to generate automatically, or provide a URL to a profile image
+            </p>
           </div>
         </div>
 

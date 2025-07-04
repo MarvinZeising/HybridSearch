@@ -11,6 +11,7 @@ export interface User {
   isActive: boolean;
   phone?: string;
   location?: string;
+  profilePhoto?: string;
   createdAt: string;
   updatedAt: string;
   fullName?: string; // Virtual field from backend
@@ -27,6 +28,7 @@ export interface CreateUserRequest {
   employeeId: string;
   phone?: string;
   location?: string;
+  profilePhoto?: string;
 }
 
 export interface UpdateUserRequest {
@@ -39,5 +41,6 @@ export interface UpdateUserRequest {
   employeeId?: string;
   phone?: string;
   location?: string;
+  profilePhoto?: string;
   isActive?: boolean;
 }

@@ -86,7 +86,20 @@ const UserSearch: React.FC = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-12 w-12">
-                      <div className="h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center">
+                      {user.profilePhoto ? (
+                        <img
+                          src={user.profilePhoto}
+                          alt={`${user.firstName} ${user.lastName}`}
+                          className="h-12 w-12 rounded-full object-cover"
+                          onError={(e) => {
+                            // Fallback to initials if image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center ${user.profilePhoto ? 'hidden' : ''}`}>
                         <span className="text-sm font-medium text-gray-700">
                           {user.firstName.charAt(0)}{user.lastName.charAt(0)}
                         </span>
