@@ -1,0 +1,76 @@
+{
+  "index_patterns": [
+    "branch-*"
+  ],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 1,
+      "analysis": {
+        "analyzer": {
+          "standard": {
+            "type": "standard"
+          }
+        }
+      },
+      "index.knn": true
+    },
+    "mappings": {
+      "properties": {
+        "title": {
+          "type": "text",
+          "analyzer": "standard",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "description": {
+          "type": "text",
+          "analyzer": "standard"
+        },
+        "content": {
+          "type": "text",
+          "analyzer": "standard"
+        },
+        "embeddings": {
+          "type": "nested",
+          "properties": {
+            "knn": {
+              "type": "knn_vector",
+              "dimension": 384,
+              "method": {
+                "name": "hnsw",
+                "space_type": "l2",
+                "engine": "faiss",
+                "parameters": {
+                  "ef_construction": 128,
+                  "m": 24
+                }
+              }
+            }
+          }
+        },
+        "createdAt": {
+          "type": "date"
+        },
+        "createdBy": {
+          "type": "keyword"
+        },
+        "createdByName": {
+          "type": "keyword"
+        },
+        "updatedAt": {
+          "type": "date"
+        },
+        "updatedBy": {
+          "type": "keyword"
+        },
+        "updatedByName": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}

@@ -11,7 +11,8 @@
     "isActive": true,
     "phone": "+1-555-0101",
     "location": "New York",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=SarahJohnson&backgroundColor=b6e3f4"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=SarahJohnson&backgroundColor=b6e3f4",
+    "branchId": "branch1"
   },
   {
     "firstName": "Michael",
@@ -25,7 +26,8 @@
     "isActive": true,
     "phone": "+1-555-0102",
     "location": "San Francisco",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=MichaelChen&backgroundColor=ffdfbf"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=MichaelChen&backgroundColor=ffdfbf",
+    "branchId": "branch1"
   },
   {
     "firstName": "Emily",
@@ -39,7 +41,8 @@
     "isActive": true,
     "phone": "+1-555-0103",
     "location": "New York",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=EmilyRodriguez&backgroundColor=d1d4f9"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=EmilyRodriguez&backgroundColor=d1d4f9",
+    "branchId": "branch1"
   },
   {
     "firstName": "David",
@@ -53,7 +56,8 @@
     "isActive": true,
     "phone": "+1-555-0104",
     "location": "Los Angeles",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=DavidKim&backgroundColor=ffd5dc"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=DavidKim&backgroundColor=ffd5dc",
+    "branchId": "branch1"
   },
   {
     "firstName": "Lisa",
@@ -67,7 +71,8 @@
     "isActive": true,
     "phone": "+1-555-0105",
     "location": "New York",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=LisaThompson&backgroundColor=d4edda"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=LisaThompson&backgroundColor=d4edda",
+    "branchId": "branch1"
   },
   {
     "firstName": "James",
@@ -81,7 +86,8 @@
     "isActive": true,
     "phone": "+1-555-0106",
     "location": "San Francisco",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=JamesWilson&backgroundColor=ffdfbf"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=JamesWilson&backgroundColor=ffdfbf",
+    "branchId": "branch1"
   },
   {
     "firstName": "Jennifer",
@@ -95,7 +101,8 @@
     "isActive": true,
     "phone": "+1-555-0107",
     "location": "San Francisco",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=JenniferBrown&backgroundColor=ffdfbf"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=JenniferBrown&backgroundColor=ffdfbf",
+    "branchId": "branch1"
   },
   {
     "firstName": "Robert",
@@ -109,7 +116,8 @@
     "isActive": true,
     "phone": "+1-555-0108",
     "location": "San Francisco",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=RobertDavis&backgroundColor=ffdfbf"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=RobertDavis&backgroundColor=ffdfbf",
+    "branchId": "branch1"
   },
   {
     "firstName": "Amanda",
@@ -123,7 +131,8 @@
     "isActive": true,
     "phone": "+1-555-0109",
     "location": "San Francisco",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=AmandaGarcia&backgroundColor=ffdfbf"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=AmandaGarcia&backgroundColor=ffdfbf",
+    "branchId": "branch1"
   },
   {
     "firstName": "Thomas",
@@ -137,7 +146,8 @@
     "isActive": true,
     "phone": "+1-555-0110",
     "location": "San Francisco",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=ThomasMartinez&backgroundColor=ffdfbf"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=ThomasMartinez&backgroundColor=ffdfbf",
+    "branchId": "branch1"
   },
   {
     "firstName": "Rachel",
@@ -151,7 +161,8 @@
     "isActive": true,
     "phone": "+1-555-0111",
     "location": "New York",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=RachelAnderson&backgroundColor=d1d4f9"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=RachelAnderson&backgroundColor=d1d4f9",
+    "branchId": "branch1"
   },
   {
     "firstName": "Christopher",
@@ -165,7 +176,8 @@
     "isActive": true,
     "phone": "+1-555-0112",
     "location": "New York",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=ChristopherTaylor&backgroundColor=d1d4f9"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=ChristopherTaylor&backgroundColor=d1d4f9",
+    "branchId": "branch1"
   },
   {
     "firstName": "Nicole",
@@ -179,7 +191,8 @@
     "isActive": true,
     "phone": "+1-555-0113",
     "location": "Los Angeles",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=NicoleWhite&backgroundColor=ffd5dc"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=NicoleWhite&backgroundColor=ffd5dc",
+    "branchId": "branch1"
   },
   {
     "firstName": "Kevin",
@@ -193,7 +206,8 @@
     "isActive": true,
     "phone": "+1-555-0114",
     "location": "Los Angeles",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=KevinLee&backgroundColor=ffd5dc"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=KevinLee&backgroundColor=ffd5dc",
+    "branchId": "branch1"
   },
   {
     "firstName": "Stephanie",
@@ -207,7 +221,8 @@
     "isActive": true,
     "phone": "+1-555-0115",
     "location": "New York",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=StephanieClark&backgroundColor=d4edda"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=StephanieClark&backgroundColor=d4edda",
+    "branchId": "branch1"
   },
   {
     "firstName": "Daniel",
@@ -221,7 +236,8 @@
     "isActive": true,
     "phone": "+1-555-0116",
     "location": "New York",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=DanielLewis&backgroundColor=d4edda"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=DanielLewis&backgroundColor=d4edda",
+    "branchId": "branch1"
   },
   {
     "firstName": "Michelle",
@@ -235,7 +251,8 @@
     "isActive": true,
     "phone": "+1-555-0117",
     "location": "New York",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=MichelleWalker&backgroundColor=d4edda"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=MichelleWalker&backgroundColor=d4edda",
+    "branchId": "branch1"
   },
   {
     "firstName": "Ryan",
@@ -249,7 +266,8 @@
     "isActive": true,
     "phone": "+1-555-0118",
     "location": "San Francisco",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=RyanHall&backgroundColor=ffdfbf"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=RyanHall&backgroundColor=ffdfbf",
+    "branchId": "branch1"
   },
   {
     "firstName": "Jessica",
@@ -263,7 +281,8 @@
     "isActive": true,
     "phone": "+1-555-0119",
     "location": "San Francisco",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=JessicaAllen&backgroundColor=ffdfbf"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=JessicaAllen&backgroundColor=ffdfbf",
+    "branchId": "branch1"
   },
   {
     "firstName": "Andrew",
@@ -277,6 +296,307 @@
     "isActive": true,
     "phone": "+1-555-0120",
     "location": "San Francisco",
-    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=AndrewYoung&backgroundColor=ffdfbf"
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=AndrewYoung&backgroundColor=ffdfbf",
+    "branchId": "branch1"
+  },
+  {
+    "firstName": "Henrik",
+    "lastName": "Andersson",
+    "email": "henrik.andersson@techconsult.eu",
+    "jobTitle": "Chief Executive Officer",
+    "department": "Executive",
+    "managerId": null,
+    "employeeId": "EMP021",
+    "hireDate": "2019-03-01T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+46-8-555-0121",
+    "location": "Stockholm",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=HenrikAndersson&backgroundColor=b6e3f4",
+    "branchId": "branch2"
+  },
+  {
+    "firstName": "Sophia",
+    "lastName": "Müller",
+    "email": "sophia.muller@techconsult.eu",
+    "jobTitle": "Chief Technology Officer",
+    "department": "Engineering",
+    "managerId": "EMP021",
+    "employeeId": "EMP022",
+    "hireDate": "2019-05-15T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+49-30-555-0122",
+    "location": "Berlin",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=SophiaMuller&backgroundColor=ffdfbf",
+    "branchId": "branch2"
+  },
+  {
+    "firstName": "Pierre",
+    "lastName": "Dubois",
+    "email": "pierre.dubois@techconsult.eu",
+    "jobTitle": "Chief Financial Officer",
+    "department": "Finance",
+    "managerId": "EMP021",
+    "employeeId": "EMP023",
+    "hireDate": "2019-04-01T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+33-1-555-0123",
+    "location": "Paris",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=PierreDubois&backgroundColor=d1d4f9",
+    "branchId": "branch2"
+  },
+  {
+    "firstName": "Isabella",
+    "lastName": "Rossi",
+    "email": "isabella.rossi@techconsult.eu",
+    "jobTitle": "Chief Marketing Officer",
+    "department": "Marketing",
+    "managerId": "EMP021",
+    "employeeId": "EMP024",
+    "hireDate": "2019-06-01T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+39-02-555-0124",
+    "location": "Milan",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=IsabellaRossi&backgroundColor=ffd5dc",
+    "branchId": "branch2"
+  },
+  {
+    "firstName": "Lars",
+    "lastName": "Eriksson",
+    "email": "lars.eriksson@techconsult.eu",
+    "jobTitle": "VP of Human Resources",
+    "department": "HR",
+    "managerId": "EMP021",
+    "employeeId": "EMP025",
+    "hireDate": "2019-07-01T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+46-8-555-0125",
+    "location": "Stockholm",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=LarsEriksson&backgroundColor=d4edda",
+    "branchId": "branch2"
+  },
+  {
+    "firstName": "Elena",
+    "lastName": "Petrov",
+    "email": "elena.petrov@techconsult.eu",
+    "jobTitle": "Technical Director",
+    "department": "Engineering",
+    "managerId": "EMP022",
+    "employeeId": "EMP026",
+    "hireDate": "2019-08-15T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+49-30-555-0126",
+    "location": "Berlin",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=ElenaPetrov&backgroundColor=ffdfbf",
+    "branchId": "branch2"
+  },
+  {
+    "firstName": "Marco",
+    "lastName": "Silva",
+    "email": "marco.silva@techconsult.eu",
+    "jobTitle": "Senior Consultant",
+    "department": "Consulting",
+    "managerId": "EMP026",
+    "employeeId": "EMP027",
+    "hireDate": "2020-01-20T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+351-21-555-0127",
+    "location": "Lisbon",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=MarcoSilva&backgroundColor=ffdfbf",
+    "branchId": "branch2"
+  },
+  {
+    "firstName": "Amelia",
+    "lastName": "Johnson",
+    "email": "amelia.johnson@techconsult.eu",
+    "jobTitle": "Solutions Architect",
+    "department": "Engineering",
+    "managerId": "EMP026",
+    "employeeId": "EMP028",
+    "hireDate": "2020-03-15T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+44-20-555-0128",
+    "location": "London",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=AmeliaJohnson&backgroundColor=ffdfbf",
+    "branchId": "branch2"
+  },
+  {
+    "firstName": "Matthias",
+    "lastName": "Weber",
+    "email": "matthias.weber@techconsult.eu",
+    "jobTitle": "DevOps Specialist",
+    "department": "Engineering",
+    "managerId": "EMP026",
+    "employeeId": "EMP029",
+    "hireDate": "2020-05-01T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+49-30-555-0129",
+    "location": "Berlin",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=MatthiasWeber&backgroundColor=ffdfbf",
+    "branchId": "branch2"
+  },
+  {
+    "firstName": "Camille",
+    "lastName": "Bernard",
+    "email": "camille.bernard@techconsult.eu",
+    "jobTitle": "Finance Manager",
+    "department": "Finance",
+    "managerId": "EMP023",
+    "employeeId": "EMP030",
+    "hireDate": "2020-02-01T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+33-1-555-0130",
+    "location": "Paris",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=CamilleBernard&backgroundColor=d1d4f9",
+    "branchId": "branch2"
+  },
+  {
+    "firstName": "Takeshi",
+    "lastName": "Yamamoto",
+    "email": "takeshi.yamamoto@asiapacific.com",
+    "jobTitle": "Chief Executive Officer",
+    "department": "Executive",
+    "managerId": null,
+    "employeeId": "EMP031",
+    "hireDate": "2018-04-01T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+81-3-555-0131",
+    "location": "Tokyo",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=TakeshiYamamoto&backgroundColor=b6e3f4",
+    "branchId": "branch3"
+  },
+  {
+    "firstName": "Li",
+    "lastName": "Wei",
+    "email": "li.wei@asiapacific.com",
+    "jobTitle": "Chief Operations Officer",
+    "department": "Operations",
+    "managerId": "EMP031",
+    "employeeId": "EMP032",
+    "hireDate": "2018-06-01T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+86-21-555-0132",
+    "location": "Shanghai",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=LiWei&backgroundColor=ffdfbf",
+    "branchId": "branch3"
+  },
+  {
+    "firstName": "Priya",
+    "lastName": "Sharma",
+    "email": "priya.sharma@asiapacific.com",
+    "jobTitle": "Chief Financial Officer",
+    "department": "Finance",
+    "managerId": "EMP031",
+    "employeeId": "EMP033",
+    "hireDate": "2018-05-15T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+91-11-555-0133",
+    "location": "Mumbai",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=PriyaSharma&backgroundColor=d1d4f9",
+    "branchId": "branch3"
+  },
+  {
+    "firstName": "Hiroshi",
+    "lastName": "Tanaka",
+    "email": "hiroshi.tanaka@asiapacific.com",
+    "jobTitle": "VP of Manufacturing",
+    "department": "Manufacturing",
+    "managerId": "EMP032",
+    "employeeId": "EMP034",
+    "hireDate": "2018-07-01T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+81-3-555-0134",
+    "location": "Tokyo",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=HiroshiTanaka&backgroundColor=f0f0f0",
+    "branchId": "branch3"
+  },
+  {
+    "firstName": "Mei",
+    "lastName": "Chen",
+    "email": "mei.chen@asiapacific.com",
+    "jobTitle": "Quality Assurance Director",
+    "department": "Quality",
+    "managerId": "EMP032",
+    "employeeId": "EMP035",
+    "hireDate": "2018-08-15T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+86-21-555-0135",
+    "location": "Shanghai",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=MeiChen&backgroundColor=e6f3ff",
+    "branchId": "branch3"
+  },
+  {
+    "firstName": "Rajesh",
+    "lastName": "Patel",
+    "email": "rajesh.patel@asiapacific.com",
+    "jobTitle": "Supply Chain Manager",
+    "department": "Operations",
+    "managerId": "EMP032",
+    "employeeId": "EMP036",
+    "hireDate": "2019-01-10T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+91-11-555-0136",
+    "location": "Mumbai",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=RajeshPatel&backgroundColor=fff2e6",
+    "branchId": "branch3"
+  },
+  {
+    "firstName": "Yuki",
+    "lastName": "Sato",
+    "email": "yuki.sato@asiapacific.com",
+    "jobTitle": "Production Manager",
+    "department": "Manufacturing",
+    "managerId": "EMP034",
+    "employeeId": "EMP037",
+    "hireDate": "2019-03-01T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+81-3-555-0137",
+    "location": "Tokyo",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=YukiSato&backgroundColor=f0f0f0",
+    "branchId": "branch3"
+  },
+  {
+    "firstName": "Xin",
+    "lastName": "Liu",
+    "email": "xin.liu@asiapacific.com",
+    "jobTitle": "Manufacturing Engineer",
+    "department": "Manufacturing",
+    "managerId": "EMP037",
+    "employeeId": "EMP038",
+    "hireDate": "2019-05-20T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+86-21-555-0138",
+    "location": "Shanghai",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=XinLiu&backgroundColor=f0f0f0",
+    "branchId": "branch3"
+  },
+  {
+    "firstName": "Arjun",
+    "lastName": "Kumar",
+    "email": "arjun.kumar@asiapacific.com",
+    "jobTitle": "Quality Control Specialist",
+    "department": "Quality",
+    "managerId": "EMP035",
+    "employeeId": "EMP039",
+    "hireDate": "2019-07-15T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+91-11-555-0139",
+    "location": "Mumbai",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=ArjunKumar&backgroundColor=e6f3ff",
+    "branchId": "branch3"
+  },
+  {
+    "firstName": "Sakura",
+    "lastName": "Nakamura",
+    "email": "sakura.nakamura@asiapacific.com",
+    "jobTitle": "HR Manager",
+    "department": "HR",
+    "managerId": "EMP031",
+    "employeeId": "EMP040",
+    "hireDate": "2019-02-01T00:00:00.000Z",
+    "isActive": true,
+    "phone": "+81-3-555-0140",
+    "location": "Tokyo",
+    "profilePhoto": "https://api.dicebear.com/7.x/avataaars/svg?seed=SakuraNakamura&backgroundColor=d4edda",
+    "branchId": "branch3"
   }
 ]

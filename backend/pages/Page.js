@@ -21,33 +21,53 @@ const PageSchema = new mongoose.Schema({
 const Page = mongoose.model('Page', PageSchema);
 
 // Static method to search pages using OpenSearch
-Page.search = async function(query, useReranking = false) {
+Page.search = async function(query, branchId, useReranking = false) {
   try {
+    // First filter by branchId in MongoDB
+    const allPages = await this.find({ branchId: branchId });
+
+    if (allPages.length === 0) {
+      return [];
+    }
+
+    const pageIds = allPages.map(page => page._id.toString());
+
     const searchPipeline = useReranking ? 'pages-search-pipeline-reranked' : 'pages-search-pipeline';
     const searchBody = {
       query: {
-        hybrid: {
-          queries: [
+        bool: {
+          must: [
             {
-              multi_match: { // keyword search
-                query: query,
-                fields: ['title^4', 'description^2', 'content'],
-                type: 'best_fields',
-                fuzziness: 'AUTO'
+              terms: {
+                _id: pageIds
               }
             },
             {
-              nested: {
-                score_mode: 'max',
-                path: 'embeddings',
-                query: {
-                  neural: { // neural search using sentence transformer
-                    'embeddings.knn': {
-                      query_text: query,
-                      k: 5
+              hybrid: {
+                queries: [
+                  {
+                    multi_match: { // keyword search
+                      query: query,
+                      fields: ['title^4', 'description^2', 'content'],
+                      type: 'best_fields',
+                      fuzziness: 'AUTO'
+                    }
+                  },
+                  {
+                    nested: {
+                      score_mode: 'max',
+                      path: 'embeddings',
+                      query: {
+                        neural: { // neural search using sentence transformer
+                          'embeddings.knn': {
+                            query_text: query,
+                            k: 5
+                          }
+                        }
+                      }
                     }
                   }
-                }
+                ]
               }
             }
           ]
@@ -69,14 +89,12 @@ Page.search = async function(query, useReranking = false) {
     const searchResponse = await axios.post(`http://opensearch:9200/pages/_search?search_pipeline=${searchPipeline}`, searchBody);
 
     const hits = searchResponse.data.hits.hits;
-    const pageIds = hits.map(hit => hit._id);
+    const hitIds = hits.map(hit => hit._id);
 
-    // Fetch full documents from MongoDB using the IDs
-    const plainPages = await this.find({
-      _id: { $in: pageIds }
-    });
+    // Filter pages that actually matched the search
+    const matchedPages = allPages.filter(page => hitIds.includes(page._id.toString()));
 
-    return plainPages.map((page) => {
+    return matchedPages.map((page) => {
       const score = hits.find(x => x._id === page.id)._score;
       return {...page._doc, score};
     })

@@ -43,27 +43,47 @@ UserSchema.pre('save', function(next) {
 const User = mongoose.model('User', UserSchema);
 
 // Static method to search users using OpenSearch
-User.search = async function(query, useReranking = false) {
+User.search = async function(query, branchId, useReranking = false) {
   try {
+    // First filter by branchId in MongoDB
+    const allUsers = await this.find({ branchId: branchId }).populate('managerId', 'firstName lastName email jobTitle');
+
+    if (allUsers.length === 0) {
+      return [];
+    }
+
+    const userIds = allUsers.map(user => user._id.toString());
+
     const searchPipeline = useReranking ? 'users-search-pipeline-reranked' : 'users-search-pipeline';
     const searchBody = {
       query: {
-        hybrid: {
-          queries: [
+        bool: {
+          must: [
             {
-              multi_match: { // keyword search
-                query: query,
-                fields: ['firstName^3', 'lastName^3', 'jobTitle^2', 'department^2', 'fullName^4'],
-                type: 'best_fields',
-                fuzziness: 'AUTO'
+              terms: {
+                _id: userIds
               }
             },
             {
-              neural: { // neural search using sentence transformer
-                embedding: {
-                  query_text: query,
-                  k: 5
-                }
+              hybrid: {
+                queries: [
+                  {
+                    multi_match: { // keyword search
+                      query: query,
+                      fields: ['firstName^3', 'lastName^3', 'jobTitle^2', 'department^2', 'fullName^4'],
+                      type: 'best_fields',
+                      fuzziness: 'AUTO'
+                    }
+                  },
+                  {
+                    neural: { // neural search using sentence transformer
+                      embedding: {
+                        query_text: query,
+                        k: 5
+                      }
+                    }
+                  }
+                ]
               }
             }
           ]
@@ -85,14 +105,12 @@ User.search = async function(query, useReranking = false) {
     const searchResponse = await axios.post(`http://opensearch:9200/users/_search?search_pipeline=${searchPipeline}`, searchBody);
 
     const hits = searchResponse.data.hits.hits;
-    const userIds = hits.map(hit => hit._id);
+    const hitIds = hits.map(hit => hit._id);
 
-    // Fetch full documents from MongoDB using the IDs
-    const plainUsers = await this.find({
-      _id: { $in: userIds }
-    }).populate('managerId', 'firstName lastName email jobTitle');
+    // Filter users that actually matched the search
+    const matchedUsers = allUsers.filter(user => hitIds.includes(user._id.toString()));
 
-    return plainUsers.map((user) => {
+    return matchedUsers.map((user) => {
       const score = hits.find(x => x._id === user.id)._score;
       return {...user._doc, score};
     })

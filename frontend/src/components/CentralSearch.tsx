@@ -1,266 +1,310 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useSession } from '../contexts/SessionContext';
 import { multiSearch } from '../queries';
-import type { UnifiedSearchResult, PostSearchResult, PageSearchResult, UserSearchResult } from '../types/search';
+import type { UnifiedSearchResult } from '../types/search';
 
 const CentralSearch: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
-  const [useReranking, setUseReranking] = useState(searchParams.get('rerank') === 'true');
-  const [typeFilter, setTypeFilter] = useState<string>(searchParams.get('type') || 'all');
+  const { currentCEO, currentBranchId } = useSession();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [useReranking, setUseReranking] = useState(false);
+  const [selectedType, setSelectedType] = useState<'all' | 'post' | 'page' | 'user' | 'branch'>('all');
 
-  const { data: searchData, isLoading, error } = useQuery({
-    queryKey: ['multisearch', searchTerm, useReranking],
-    queryFn: () => multiSearch({ query: searchTerm, useReranking }),
-    enabled: !!searchTerm.trim(),
-  });
-
+  // Debounce search query
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      const newParams = new URLSearchParams();
-      if (searchTerm.trim()) {
-        newParams.set('q', searchTerm);
-        if (useReranking) {
-          newParams.set('rerank', 'true');
-        }
-        if (typeFilter !== 'all') {
-          newParams.set('type', typeFilter);
-        }
-      }
-      setSearchParams(newParams);
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
     }, 300);
 
-    return () => clearTimeout(debounceTimer);
-  }, [searchTerm, useReranking, typeFilter, setSearchParams]);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  const filteredResults = searchData?.results.filter(result =>
-    typeFilter === 'all' || result.type === typeFilter
+  const { data: searchResults, isLoading, error } = useQuery({
+    queryKey: ['central-search', debouncedQuery, useReranking, currentBranchId],
+    queryFn: () => multiSearch(debouncedQuery, useReranking, currentBranchId),
+    enabled: debouncedQuery.length > 0,
+  });
+
+  const filteredResults = searchResults?.results?.filter(result =>
+    selectedType === 'all' || result.type === selectedType
   ) || [];
 
-  const renderPostResult = (result: PostSearchResult) => (
-    <div key={`post-${result._id}`} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            📰 News Post
-          </span>
-          <span className="text-xs text-gray-400">Score: {result.score.toFixed(3)}</span>
-        </div>
-        <span className="text-sm text-gray-500">
-          {result.createdAt ? new Date(result.createdAt).toLocaleDateString() : 'N/A'}
-        </span>
-      </div>
-      <Link to={`/post/${result._id}`} className="block">
-        <h3 className="text-xl font-semibold text-gray-900 mb-2 hover:text-blue-600">
-          {result.title}
-        </h3>
-        <p className="text-gray-600 mb-3">{result.description}</p>
-      </Link>
-    </div>
-  );
+  const formatScore = (score: number) => {
+    return score.toFixed(2);
+  };
 
-  const renderPageResult = (result: PageSearchResult) => (
-    <div key={`page-${result._id}`} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            📄 Page
-          </span>
-          <span className="text-xs text-gray-400">Score: {result.score.toFixed(3)}</span>
-          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-            result.isPublished
-              ? 'bg-green-100 text-green-800'
-              : 'bg-yellow-100 text-yellow-800'
-          }`}>
-            {result.isPublished ? 'Published' : 'Draft'}
-          </span>
-        </div>
-        <span className="text-sm text-gray-500">
-          {result.updatedAt ? new Date(result.updatedAt).toLocaleDateString() : 'N/A'}
-        </span>
-      </div>
-      <Link to={`/pages/${result._id}`} className="block">
-        <h3 className="text-xl font-semibold text-gray-900 mb-2 hover:text-blue-600">
-          {result.title}
-        </h3>
-        <p className="text-gray-600 mb-3">{result.description}</p>
-      </Link>
-      <div className="flex flex-wrap gap-2 mt-3">
-        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
-          {result.category}
-        </span>
-        {result.tags.map((tag, index) => (
-          <span key={index} className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded">
-            {tag}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'post':
+        return '📰';
+      case 'page':
+        return '📄';
+      case 'user':
+        return '👤';
+      case 'branch':
+        return '🏢';
+      default:
+        return '📋';
+    }
+  };
 
-  const renderUserResult = (result: UserSearchResult) => (
-    <div key={`user-${result._id}`} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-            👤 Employee
-          </span>
-          <span className="text-xs text-gray-400">Score: {result.score.toFixed(3)}</span>
-        </div>
-        <span className="text-sm text-gray-500">ID: {result.employeeId}</span>
-      </div>
-      <div className="flex items-center">
-        <div className="flex-shrink-0 h-12 w-12">
-          {result.profilePhoto ? (
-            <img
-              src={result.profilePhoto}
-              alt={`${result.firstName} ${result.lastName}`}
-              className="h-12 w-12 rounded-full object-cover"
-            />
-          ) : (
-            <div className="h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center">
-              <span className="text-sm font-medium text-gray-700">
-                {result.firstName.charAt(0)}{result.lastName.charAt(0)}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="ml-4">
-          <h3 className="text-xl font-semibold text-gray-900">
-            {result.fullName || `${result.firstName} ${result.lastName}`}
-          </h3>
-          <p className="text-gray-600">{result.email}</p>
-          <p className="text-gray-600">{result.jobTitle}</p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-              {result.department}
-            </span>
-            {result.location && (
-              <span className="text-xs text-gray-500">📍 {result.location}</span>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'post':
+        return 'bg-blue-100 text-blue-800';
+      case 'page':
+        return 'bg-green-100 text-green-800';
+      case 'user':
+        return 'bg-purple-100 text-purple-800';
+      case 'branch':
+        return 'bg-orange-100 text-orange-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   const renderResult = (result: UnifiedSearchResult) => {
+    const commonProps = {
+      key: result._id,
+      className: "bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+    };
+
+    const typeColor = getTypeColor(result.type);
+    const typeIcon = getTypeIcon(result.type);
+
     switch (result.type) {
       case 'post':
-        return renderPostResult(result as PostSearchResult);
+        return (
+          <div {...commonProps}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeColor}`}>
+                  {typeIcon} News Post
+                </span>
+                <span className="text-xs text-gray-500">
+                  Score: {formatScore(result.score)}
+                </span>
+              </div>
+                             <span className="text-xs text-gray-400">{result.createdAt}</span>
+             </div>
+             <h3 className="font-semibold text-gray-900 mb-1">{result.title}</h3>
+             <p className="text-sm text-gray-600 mb-2">{result.description}</p>
+             <div className="flex items-center space-x-4 text-xs text-gray-500">
+               <span>Created: {result.createdAt}</span>
+             </div>
+          </div>
+        );
+
       case 'page':
-        return renderPageResult(result as PageSearchResult);
+        return (
+          <div {...commonProps}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeColor}`}>
+                  {typeIcon} Page
+                </span>
+                <span className="text-xs text-gray-500">
+                  Score: {formatScore(result.score)}
+                </span>
+              </div>
+              <span className="text-xs text-gray-400">{result.updatedAt}</span>
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-1">{result.title}</h3>
+            <p className="text-sm text-gray-600 mb-2">{result.description}</p>
+            <div className="flex items-center space-x-4 text-xs text-gray-500">
+              <span>Category: {result.category}</span>
+              {result.tags && result.tags.length > 0 && (
+                <>
+                  <span>•</span>
+                  <span>Tags: {result.tags.join(', ')}</span>
+                </>
+              )}
+            </div>
+          </div>
+        );
+
       case 'user':
-        return renderUserResult(result as UserSearchResult);
+        return (
+          <div {...commonProps}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeColor}`}>
+                  {typeIcon} Employee
+                </span>
+                <span className="text-xs text-gray-500">
+                  Score: {formatScore(result.score)}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3 mb-2">
+              <img
+                src={result.profilePhoto}
+                alt={`${result.firstName} ${result.lastName}`}
+                className="w-10 h-10 rounded-full"
+              />
+              <div>
+                <h3 className="font-semibold text-gray-900">
+                  {result.firstName} {result.lastName}
+                </h3>
+                <p className="text-sm text-gray-600">{result.jobTitle}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4 text-xs text-gray-500">
+              <span>Department: {result.department}</span>
+              <span>•</span>
+              <span>Location: {result.location}</span>
+              <span>•</span>
+              <span>ID: {result.employeeId}</span>
+            </div>
+          </div>
+        );
+
+      case 'branch':
+        return (
+          <div {...commonProps}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeColor}`}>
+                  {typeIcon} Company Info
+                </span>
+                <span className="text-xs text-gray-500">
+                  Score: {formatScore(result.score)}
+                </span>
+              </div>
+              <span className="text-xs text-gray-400">{result.updatedAt}</span>
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-1">{result.title}</h3>
+            <p className="text-sm text-gray-600 mb-2">{result.description}</p>
+            <div className="flex items-center space-x-4 text-xs text-gray-500">
+              <span>Created by: {result.createdByName}</span>
+              <span>•</span>
+              <span>Branch: {result.branchId}</span>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Universal Search</h1>
-
-        {/* Search Input */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="relative mb-4">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search across all content types..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
-            />
+    <div className="max-w-4xl mx-auto">
+      <div className="mb-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <img
+            src={currentCEO.profilePhoto}
+            alt={currentCEO.name}
+            className="w-10 h-10 rounded-full"
+          />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {currentCEO.company} Search
+            </h1>
+            <p className="text-gray-600">
+              Searching as {currentCEO.name} • {currentCEO.location}
+            </p>
           </div>
+        </div>
 
-          <div className="flex flex-wrap items-center gap-4">
-            {/* Reranking toggle */}
-            <label className="relative inline-flex items-center cursor-pointer">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search news, pages, employees, and company info..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <svg
+            className="absolute left-4 top-3.5 h-5 w-5 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center space-x-4">
+            <label className="flex items-center space-x-2">
               <input
                 type="checkbox"
                 checked={useReranking}
                 onChange={(e) => setUseReranking(e.target.checked)}
-                className="sr-only peer"
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              <span className="ml-3 text-sm font-medium text-gray-700">Use reranking</span>
+              <span className="text-sm text-gray-700">Use reranking</span>
             </label>
+          </div>
 
-            {/* Type filter */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">Filter by type:</span>
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Types</option>
-                <option value="post">News Posts</option>
-                <option value="page">Pages</option>
-                <option value="user">Employees</option>
-              </select>
-            </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600">Filter:</span>
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value as any)}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Types</option>
+              <option value="post">News Posts</option>
+              <option value="page">Pages</option>
+              <option value="user">Employees</option>
+              <option value="branch">Company Info</option>
+            </select>
           </div>
         </div>
-
-        {/* Search Stats */}
-        {searchData && searchTerm && (
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-              <span>
-                <strong>{filteredResults.length}</strong> results found
-              </span>
-              <span>Posts: {searchData.totalHits.posts}</span>
-              <span>Pages: {searchData.totalHits.pages}</span>
-              <span>Employees: {searchData.totalHits.users}</span>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Results */}
-      <div className="space-y-4">
-        {isLoading && (
-          <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="mt-2 text-gray-600">Searching...</p>
-          </div>
-        )}
+      {isLoading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2 text-gray-600">Searching...</span>
+        </div>
+      )}
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-            Failed to perform search. Please try again.
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <div className="flex items-center">
+            <svg className="h-5 w-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-red-800">Search failed. Please try again.</span>
           </div>
-        )}
+        </div>
+      )}
 
-        {!isLoading && !error && searchTerm && filteredResults.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No results found for "{searchTerm}"</p>
+      {searchResults && debouncedQuery && (
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            Search Results for "{debouncedQuery}"
+          </h2>
+          <div className="flex items-center space-x-6 text-sm text-gray-600">
+            <span>📰 News Posts: {searchResults.totalHits.posts}</span>
+            <span>📄 Pages: {searchResults.totalHits.pages}</span>
+            <span>👤 Employees: {searchResults.totalHits.users}</span>
+            <span>🏢 Company Info: {searchResults.totalHits.branches}</span>
           </div>
-        )}
+        </div>
+      )}
 
-        {!isLoading && !error && filteredResults.length > 0 && (
-          <div className="space-y-4">
-            {filteredResults.map(renderResult)}
-          </div>
-        )}
+      {filteredResults.length > 0 && (
+        <div className="space-y-4">
+          {filteredResults.map(renderResult)}
+        </div>
+      )}
 
-        {!searchTerm && (
-          <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
-              <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Start searching</h3>
-            <p className="text-gray-500">
-              Enter a search term to find content across news posts, pages, and employees
-            </p>
-          </div>
-        )}
-      </div>
+      {searchResults && filteredResults.length === 0 && debouncedQuery && (
+        <div className="text-center py-8">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.469-.98-6.047-2.564m.001-3.872A7.946 7.946 0 0112 6c2.34 0 4.469.98 6.047 2.564m.001 3.872A7.966 7.966 0 0112 18c-2.34 0-4.469-.98-6.047-2.564" />
+          </svg>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No results found</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Try different keywords or remove filters.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

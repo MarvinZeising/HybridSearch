@@ -6,6 +6,7 @@ import { createIndex, createPagesIndex, createUsersIndex } from './posts/createI
 import deployModel from "./models/deployModel.js";
 import { Page, initializeDefaultPages } from './pages/Page.js';
 import { User, initializeDefaultUsers } from './users/User.js';
+import { Branch, initializeDefaultBranches } from './branches/Branch.js';
 import axios from 'axios'; // Added for multisearch
 
 const app = express();
@@ -89,10 +90,16 @@ app.delete('/api/news/:id', async (req, res) => {
   }
 });
 
+// Search posts
 app.post('/api/news/search', async (req, res) => {
   try {
-    const { query } = req.body;
-    const posts = await NewsPost.search(query, false);
+    const { query, branchId } = req.body;
+
+    if (!branchId) {
+      return res.status(400).json({ error: 'branchId is required' });
+    }
+
+    const posts = await NewsPost.search(query, branchId, false);
     res.json(posts);
   } catch (error) {
     console.error('Search error:', error.error ? error.error.root_cause : error);
@@ -102,8 +109,13 @@ app.post('/api/news/search', async (req, res) => {
 
 app.post('/api/news/search-reranked', async (req, res) => {
   try {
-    const { query } = req.body;
-    const posts = await NewsPost.search(query, true);
+    const { query, branchId } = req.body;
+
+    if (!branchId) {
+      return res.status(400).json({ error: 'branchId is required' });
+    }
+
+    const posts = await NewsPost.search(query, branchId, true);
     res.json(posts);
   } catch (error) {
     console.error('Search error:', error);
@@ -180,8 +192,13 @@ app.delete('/api/pages/:id', async (req, res) => {
 // Search pages
 app.post('/api/pages/search', async (req, res) => {
   try {
-    const { query } = req.body;
-    const pages = await Page.search(query, false);
+    const { query, branchId } = req.body;
+
+    if (!branchId) {
+      return res.status(400).json({ error: 'branchId is required' });
+    }
+
+    const pages = await Page.search(query, branchId, false);
     res.json(pages);
   } catch (error) {
     console.error('Search error:', error.error ? error.error.root_cause : error);
@@ -192,8 +209,13 @@ app.post('/api/pages/search', async (req, res) => {
 // Search pages with reranking
 app.post('/api/pages/search-reranked', async (req, res) => {
   try {
-    const { query } = req.body;
-    const pages = await Page.search(query, true);
+    const { query, branchId } = req.body;
+
+    if (!branchId) {
+      return res.status(400).json({ error: 'branchId is required' });
+    }
+
+    const pages = await Page.search(query, branchId, true);
     res.json(pages);
   } catch (error) {
     console.error('Search error:', error);
@@ -305,8 +327,13 @@ app.get('/api/users/manager/:managerId', async (req, res) => {
 // Search users
 app.post('/api/users/search', async (req, res) => {
   try {
-    const { query } = req.body;
-    const users = await User.search(query, false);
+    const { query, branchId } = req.body;
+
+    if (!branchId) {
+      return res.status(400).json({ error: 'branchId is required' });
+    }
+
+    const users = await User.search(query, branchId, false);
     res.json(users);
   } catch (error) {
     console.error('Search error:', error.error ? error.error.root_cause : error);
@@ -317,8 +344,13 @@ app.post('/api/users/search', async (req, res) => {
 // Search users with reranking
 app.post('/api/users/search-reranked', async (req, res) => {
   try {
-    const { query } = req.body;
-    const users = await User.search(query, true);
+    const { query, branchId } = req.body;
+
+    if (!branchId) {
+      return res.status(400).json({ error: 'branchId is required' });
+    }
+
+    const users = await User.search(query, branchId, true);
     res.json(users);
   } catch (error) {
     console.error('Search error:', error);
@@ -326,203 +358,422 @@ app.post('/api/users/search-reranked', async (req, res) => {
   }
 });
 
-// Central multisearch endpoint
+// Branch endpoints
+app.get('/api/branches', async (req, res) => {
+  try {
+    const branches = await Branch.find({});
+    res.json(branches);
+  } catch (error) {
+    console.error('Error fetching branches:', error);
+    res.status(500).json({ error: 'Failed to fetch branches' });
+  }
+});
+
+app.get('/api/branches/:id', async (req, res) => {
+  try {
+    const branch = await Branch.findById(req.params.id);
+    if (!branch) {
+      return res.status(404).json({ error: 'Branch not found' });
+    }
+    res.json(branch);
+  } catch (error) {
+    console.error('Error fetching branch:', error);
+    res.status(500).json({ error: 'Failed to fetch branch' });
+  }
+});
+
+app.post('/api/branches', async (req, res) => {
+  try {
+    const branch = new Branch({
+      ...req.body,
+      updatedAt: new Date()
+    });
+    await branch.save();
+    res.status(201).json(branch);
+  } catch (error) {
+    console.error('Error creating branch:', error);
+    res.status(500).json({ error: 'Failed to create branch' });
+  }
+});
+
+app.put('/api/branches/:id', async (req, res) => {
+  try {
+    const branch = await Branch.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, updatedAt: new Date() },
+      { new: true }
+    );
+    if (!branch) {
+      return res.status(404).json({ error: 'Branch not found' });
+    }
+    res.json(branch);
+  } catch (error) {
+    console.error('Error updating branch:', error);
+    res.status(500).json({ error: 'Failed to update branch' });
+  }
+});
+
+app.delete('/api/branches/:id', async (req, res) => {
+  try {
+    const branch = await Branch.findByIdAndDelete(req.params.id);
+    if (!branch) {
+      return res.status(404).json({ error: 'Branch not found' });
+    }
+    res.json({ message: 'Branch deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting branch:', error);
+    res.status(500).json({ error: 'Failed to delete branch' });
+  }
+});
+
+// Search branches
+app.post('/api/branches/search', async (req, res) => {
+  try {
+    const { query, branchId } = req.body;
+    const branches = await Branch.search(query, branchId, false);
+    res.json(branches);
+  } catch (error) {
+    console.error('Search error:', error.error ? error.error.root_cause : error);
+    res.status(500).json({ error: 'Failed to search branches' });
+  }
+});
+
+// Search branches with reranking
+app.post('/api/branches/search-reranked', async (req, res) => {
+  try {
+    const { query, branchId } = req.body;
+    const branches = await Branch.search(query, branchId, true);
+    res.json(branches);
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Failed to search branches' });
+  }
+});
+
+// Central branch-specific search endpoint
 app.post('/api/search', async (req, res) => {
   try {
-    const { query, useReranking = false } = req.body;
+    const { query, useReranking = false, branchId } = req.body;
 
-    // Build search requests for all three indices
+    if (!branchId) {
+      return res.status(400).json({ error: 'branchId is required' });
+    }
+
+    // Build search requests for all data types within the specified branch
     const postsSearchPipeline = useReranking ? 'posts-search-pipeline-reranked' : 'posts-search-pipeline';
     const pagesSearchPipeline = useReranking ? 'pages-search-pipeline-reranked' : 'pages-search-pipeline';
     const usersSearchPipeline = useReranking ? 'users-search-pipeline-reranked' : 'users-search-pipeline';
+    const branchesSearchPipeline = useReranking ? 'branches-search-pipeline-reranked' : 'branches-search-pipeline';
 
-    const postsQuery = {
-      query: {
-        hybrid: {
-          queries: [
-            {
-              multi_match: {
-                query: query,
-                fields: ['title^4', 'description'],
-                type: 'best_fields',
-                fuzziness: 'AUTO'
-              }
-            },
-            {
-              nested: {
-                score_mode: 'max',
-                path: 'embeddings',
-                query: {
-                  neural: {
-                    'embeddings.knn': {
-                      query_text: query,
-                      k: 5
+    // Filter MongoDB queries by branchId
+    const [posts, pages, users, branches] = await Promise.all([
+      NewsPost.find({ branchId: branchId }),
+      Page.find({ branchId: branchId }),
+      User.find({ branchId: branchId }).populate('managerId', 'firstName lastName email jobTitle'),
+      Branch.find({ branchId: branchId })
+    ]);
+
+    // Get IDs for OpenSearch queries
+    const postIds = posts.map(post => post._id.toString());
+    const pageIds = pages.map(page => page._id.toString());
+    const userIds = users.map(user => user._id.toString());
+    const branchIds = branches.map(branch => branch._id.toString());
+
+    // If no data found for this branch, return empty results
+    if (postIds.length === 0 && pageIds.length === 0 && userIds.length === 0 && branchIds.length === 0) {
+      return res.json({
+        results: [],
+        totalHits: {
+          posts: 0,
+          pages: 0,
+          users: 0,
+          branches: 0
+        }
+      });
+    }
+
+    // Build search queries with ID filters
+    const baseQueries = {
+      posts: postIds.length > 0 ? {
+        query: {
+          bool: {
+            must: [
+              {
+                terms: {
+                  _id: postIds
+                }
+              },
+              {
+                hybrid: {
+                  queries: [
+                    {
+                      multi_match: {
+                        query: query,
+                        fields: ['title^4', 'description'],
+                        type: 'best_fields',
+                        fuzziness: 'AUTO'
+                      }
+                    },
+                    {
+                      nested: {
+                        score_mode: 'max',
+                        path: 'embeddings',
+                        query: {
+                          neural: {
+                            'embeddings.knn': {
+                              query_text: query,
+                              k: 5
+                            }
+                          }
+                        }
+                      }
                     }
-                  }
+                  ]
                 }
               }
-            }
-          ]
-        }
-      },
-      search_pipeline: postsSearchPipeline
-    };
+            ]
+          }
+        },
+        search_pipeline: postsSearchPipeline
+      } : null,
 
-    const pagesQuery = {
-      query: {
-        hybrid: {
-          queries: [
-            {
-              multi_match: {
-                query: query,
-                fields: ['title^4', 'description^2', 'content'],
-                type: 'best_fields',
-                fuzziness: 'AUTO'
-              }
-            },
-            {
-              nested: {
-                score_mode: 'max',
-                path: 'embeddings',
-                query: {
-                  neural: {
-                    'embeddings.knn': {
-                      query_text: query,
-                      k: 5
+      pages: pageIds.length > 0 ? {
+        query: {
+          bool: {
+            must: [
+              {
+                terms: {
+                  _id: pageIds
+                }
+              },
+              {
+                hybrid: {
+                  queries: [
+                    {
+                      multi_match: {
+                        query: query,
+                        fields: ['title^4', 'description^2', 'content'],
+                        type: 'best_fields',
+                        fuzziness: 'AUTO'
+                      }
+                    },
+                    {
+                      nested: {
+                        score_mode: 'max',
+                        path: 'embeddings',
+                        query: {
+                          neural: {
+                            'embeddings.knn': {
+                              query_text: query,
+                              k: 5
+                            }
+                          }
+                        }
+                      }
                     }
-                  }
+                  ]
                 }
               }
-            }
-          ]
-        }
-      },
-      search_pipeline: pagesSearchPipeline
-    };
+            ]
+          }
+        },
+        search_pipeline: pagesSearchPipeline
+      } : null,
 
-    const usersQuery = {
-      query: {
-        hybrid: {
-          queries: [
-            {
-              multi_match: {
-                query: query,
-                fields: ['firstName^3', 'lastName^3', 'jobTitle^2', 'department^2', 'fullName^4'],
-                type: 'best_fields',
-                fuzziness: 'AUTO'
-              }
-            },
-            {
-              neural: {
-                embedding: {
-                  query_text: query,
-                  k: 5
+      users: userIds.length > 0 ? {
+        query: {
+          bool: {
+            must: [
+              {
+                terms: {
+                  _id: userIds
+                }
+              },
+              {
+                hybrid: {
+                  queries: [
+                    {
+                      multi_match: {
+                        query: query,
+                        fields: ['firstName^3', 'lastName^3', 'jobTitle^2', 'department^2', 'fullName^4'],
+                        type: 'best_fields',
+                        fuzziness: 'AUTO'
+                      }
+                    },
+                    {
+                      neural: {
+                        embedding: {
+                          query_text: query,
+                          k: 5
+                        }
+                      }
+                    }
+                  ]
                 }
               }
-            }
-          ]
-        }
-      },
-      search_pipeline: usersSearchPipeline
+            ]
+          }
+        },
+        search_pipeline: usersSearchPipeline
+      } : null,
+
+      branches: branchIds.length > 0 ? {
+        query: {
+          bool: {
+            must: [
+              {
+                terms: {
+                  _id: branchIds
+                }
+              },
+              {
+                hybrid: {
+                  queries: [
+                    {
+                      multi_match: {
+                        query: query,
+                        fields: ['title^4', 'description^2', 'content'],
+                        type: 'best_fields',
+                        fuzziness: 'AUTO'
+                      }
+                    },
+                    {
+                      nested: {
+                        score_mode: 'max',
+                        path: 'embeddings',
+                        query: {
+                          neural: {
+                            'embeddings.knn': {
+                              query_text: query,
+                              k: 5
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        search_pipeline: branchesSearchPipeline
+      } : null
     };
 
     // Add reranking context if using reranking
     if (useReranking) {
-      postsQuery.ext = {
-        rerank: {
-          query_context: {
-            query_text: query
-          }
+      Object.values(baseQueries).forEach(queryObj => {
+        if (queryObj) {
+          queryObj.ext = {
+            rerank: {
+              query_context: {
+                query_text: query
+              }
+            }
+          };
         }
-      };
-
-      pagesQuery.ext = {
-        rerank: {
-          query_context: {
-            query_text: query
-          }
-        }
-      };
-
-      usersQuery.ext = {
-        rerank: {
-          query_context: {
-            query_text: query
-          }
-        }
-      };
+      });
     }
 
-    // Build multisearch request body
-    const msearchBody = [
-      { index: 'posts' },
-      postsQuery,
-      { index: 'pages' },
-      pagesQuery,
-      { index: 'users' },
-      usersQuery
-    ];
+    // Execute searches in parallel
+    const searchPromises = [];
+    const indices = [];
 
-    // Execute multisearch
-    const searchResponse = await axios.post(
-      'http://opensearch:9200/_msearch',
-      msearchBody.map(item => JSON.stringify(item)).join('\n') + '\n',
-      {
-        headers: {
-          'Content-Type': 'application/x-ndjson'
-        }
+    if (baseQueries.posts) {
+      searchPromises.push(axios.post('http://opensearch:9200/posts/_search', baseQueries.posts));
+      indices.push('posts');
+    }
+    if (baseQueries.pages) {
+      searchPromises.push(axios.post('http://opensearch:9200/pages/_search', baseQueries.pages));
+      indices.push('pages');
+    }
+    if (baseQueries.users) {
+      searchPromises.push(axios.post('http://opensearch:9200/users/_search', baseQueries.users));
+      indices.push('users');
+    }
+    if (baseQueries.branches) {
+      searchPromises.push(axios.post(`http://opensearch:9200/branch-${branchId}/_search`, baseQueries.branches));
+      indices.push('branches');
+    }
+
+    const searchResponses = await Promise.all(searchPromises);
+
+    // Initialize results
+    let postsHits = [], pagesHits = [], usersHits = [], branchesHits = [];
+    let postsTotal = 0, pagesTotal = 0, usersTotal = 0, branchesTotal = 0;
+
+    // Map results back to their respective types
+    searchResponses.forEach((response, index) => {
+      const type = indices[index];
+      const hits = response.data.hits.hits;
+      const total = response.data.hits.total.value;
+
+      switch (type) {
+        case 'posts':
+          postsHits = hits;
+          postsTotal = total;
+          break;
+        case 'pages':
+          pagesHits = hits;
+          pagesTotal = total;
+          break;
+        case 'users':
+          usersHits = hits;
+          usersTotal = total;
+          break;
+        case 'branches':
+          branchesHits = hits;
+          branchesTotal = total;
+          break;
       }
-    );
-
-    const responses = searchResponse.data.responses;
-
-    // Extract IDs from each response
-    const postsHits = responses[0].hits?.hits || [];
-    const pagesHits = responses[1].hits?.hits || [];
-    const usersHits = responses[2].hits?.hits || [];
-
-    const postIds = postsHits.map(hit => hit._id);
-    const pageIds = pagesHits.map(hit => hit._id);
-    const userIds = usersHits.map(hit => hit._id);
-
-    // Fetch full documents from MongoDB
-    const [posts, pages, users] = await Promise.all([
-      postIds.length > 0 ? NewsPost.find({ _id: { $in: postIds } }) : [],
-      pageIds.length > 0 ? Page.find({ _id: { $in: pageIds } }) : [],
-      userIds.length > 0 ? User.find({ _id: { $in: userIds } }).populate('managerId', 'firstName lastName email jobTitle') : []
-    ]);
+    });
 
     // Add scores and type information to results
-    const postsWithScores = posts.map(post => {
+    const postsWithScores = posts.filter(post =>
+      postsHits.some(hit => hit._id === post.id)
+    ).map(post => {
       const score = postsHits.find(hit => hit._id === post.id)?._score || 0;
       return { ...post._doc, score, type: 'post' };
     });
 
-    const pagesWithScores = pages.map(page => {
+    const pagesWithScores = pages.filter(page =>
+      pagesHits.some(hit => hit._id === page.id)
+    ).map(page => {
       const score = pagesHits.find(hit => hit._id === page.id)?._score || 0;
       return { ...page._doc, score, type: 'page' };
     });
 
-    const usersWithScores = users.map(user => {
+    const usersWithScores = users.filter(user =>
+      usersHits.some(hit => hit._id === user.id)
+    ).map(user => {
       const score = usersHits.find(hit => hit._id === user.id)?._score || 0;
       return { ...user._doc, score, type: 'user' };
     });
 
+    const branchesWithScores = branches.filter(branch =>
+      branchesHits.some(hit => hit._id === branch.id)
+    ).map(branch => {
+      const score = branchesHits.find(hit => hit._id === branch.id)?._score || 0;
+      return { ...branch._doc, score, type: 'branch' };
+    });
+
     // Combine all results and sort by score
-    const allResults = [...postsWithScores, ...pagesWithScores, ...usersWithScores]
+    const allResults = [...postsWithScores, ...pagesWithScores, ...usersWithScores, ...branchesWithScores]
       .sort((a, b) => b.score - a.score);
 
     res.json({
       results: allResults,
       totalHits: {
-        posts: responses[0].hits?.total?.value || 0,
-        pages: responses[1].hits?.total?.value || 0,
-        users: responses[2].hits?.total?.value || 0
+        posts: postsTotal,
+        pages: pagesTotal,
+        users: usersTotal,
+        branches: branchesTotal
       }
     });
 
   } catch (error) {
-    console.error('Multisearch error:', error.response?.data || error);
+    console.error('Branch search error:', error.response?.data || error);
     res.status(500).json({ error: 'Failed to perform search' });
   }
 });
@@ -545,7 +796,8 @@ app.listen(PORT, async () => {
       createUsersIndex(sentenceTransformerModelId, rerankerModelId),
       initializeDefaultPosts(),
       initializeDefaultPages(),
-      initializeDefaultUsers()
+      initializeDefaultUsers(),
+      initializeDefaultBranches()
     ])
 
     isInitialized = true;

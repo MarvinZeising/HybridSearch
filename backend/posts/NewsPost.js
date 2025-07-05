@@ -17,33 +17,53 @@ const NewsPostSchema = new mongoose.Schema({
 const NewsPost = mongoose.model('Post', NewsPostSchema);
 
 // Static method to search posts using OpenSearch
-NewsPost.search = async function(query, useReranking = false) {
+NewsPost.search = async function(query, branchId, useReranking = false) {
   try {
+    // First filter by branchId in MongoDB
+    const allPosts = await this.find({ branchId: branchId });
+
+    if (allPosts.length === 0) {
+      return [];
+    }
+
+    const postIds = allPosts.map(post => post._id.toString());
+
     const searchPipeline = useReranking ? 'posts-search-pipeline-reranked' : 'posts-search-pipeline';
     const searchBody = {
       query: {
-        hybrid: {
-          queries: [
+        bool: {
+          must: [
             {
-              multi_match: { // keyword search
-                query: query,
-                fields: ['title^4', 'description'],
-                type: 'best_fields',
-                fuzziness: 'AUTO'
+              terms: {
+                _id: postIds
               }
             },
             {
-              nested: {
-                score_mode: 'max',
-                path: 'embeddings',
-                query: {
-                  neural: { // neural search using sentence transformer
-                    'embeddings.knn': {
-                      query_text: query,
-                      k: 5
+              hybrid: {
+                queries: [
+                  {
+                    multi_match: { // keyword search
+                      query: query,
+                      fields: ['title^4', 'description'],
+                      type: 'best_fields',
+                      fuzziness: 'AUTO'
+                    }
+                  },
+                  {
+                    nested: {
+                      score_mode: 'max',
+                      path: 'embeddings',
+                      query: {
+                        neural: { // neural search using sentence transformer
+                          'embeddings.knn': {
+                            query_text: query,
+                            k: 5
+                          }
+                        }
+                      }
                     }
                   }
-                }
+                ]
               }
             }
           ]
@@ -65,14 +85,12 @@ NewsPost.search = async function(query, useReranking = false) {
     const searchResponse = await axios.post(`http://opensearch:9200/posts/_search?search_pipeline=${searchPipeline}`, searchBody);
 
     const hits = searchResponse.data.hits.hits;
-    const postIds = hits.map(hit => hit._id);
+    const hitIds = hits.map(hit => hit._id);
 
-    // Fetch full documents from MongoDB using the IDs
-    const plainPosts = await this.find({
-      _id: { $in: postIds }
-    });
+    // Filter posts that actually matched the search
+    const matchedPosts = allPosts.filter(post => hitIds.includes(post._id.toString()));
 
-    return plainPosts.map((post) => {
+    return matchedPosts.map((post) => {
       const score = hits.find(x => x._id === post.id)._score;
       return {...post._doc, score};
     })
