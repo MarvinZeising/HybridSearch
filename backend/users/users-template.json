@@ -1,14 +1,22 @@
 {
-  "index_patterns": ["users-*"],
+  "index_patterns": [
+    "users-*"
+  ],
   "template": {
     "aliases": {
       "users": {}
     },
     "settings": {
-      "index": {
-        "knn": true,
-        "knn.algo_param.ef_search": 100
-      }
+      "number_of_shards": 1,
+      "number_of_replicas": 1,
+      "analysis": {
+        "analyzer": {
+          "standard": {
+            "type": "standard"
+          }
+        }
+      },
+      "index.knn": true
     },
     "mappings": {
       "properties": {

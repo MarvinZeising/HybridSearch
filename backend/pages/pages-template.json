@@ -16,8 +16,7 @@
           }
         }
       },
-      "index.knn": true,
-      "default_pipeline": "pages-ingest-pipeline"
+      "index.knn": true
     },
     "mappings": {
       "properties": {
