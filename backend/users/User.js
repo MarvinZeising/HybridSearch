@@ -20,6 +20,7 @@ const UserSchema = new mongoose.Schema({
   phone: String,
   location: String,
   profilePhoto: { type: String, default: null }, // URL or path to profile photo
+  branchId: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
@@ -42,75 +43,57 @@ UserSchema.pre('save', function(next) {
 
 const User = mongoose.model('User', UserSchema);
 
-// Static method to search users using OpenSearch
-User.search = async function(query, branchId, useReranking = false) {
+// Static method to search users using OpenSearch (with reranking)
+User.search = async function(query, branchId) {
   try {
-    // First filter by branchId in MongoDB
-    const allUsers = await this.find({ branchId: branchId }).populate('managerId', 'firstName lastName email jobTitle');
-
-    if (allUsers.length === 0) {
-      return [];
-    }
-
-    const userIds = allUsers.map(user => user._id.toString());
-
-    const searchPipeline = useReranking ? 'users-search-pipeline-reranked' : 'users-search-pipeline';
     const searchBody = {
       query: {
-        bool: {
-          must: [
+        hybrid: {
+          filter: {
+            term: {
+              branchId: branchId
+            }
+          },
+          queries: [
             {
-              terms: {
-                _id: userIds
+              multi_match: { // keyword search
+                query: query,
+                fields: ['firstName^3', 'lastName^3', 'jobTitle^2', 'department^2', 'fullName^4'],
+                type: 'best_fields',
+                fuzziness: 'AUTO'
               }
             },
             {
-              hybrid: {
-                queries: [
-                  {
-                    multi_match: { // keyword search
-                      query: query,
-                      fields: ['firstName^3', 'lastName^3', 'jobTitle^2', 'department^2', 'fullName^4'],
-                      type: 'best_fields',
-                      fuzziness: 'AUTO'
-                    }
-                  },
-                  {
-                    neural: { // neural search using sentence transformer
-                      embedding: {
-                        query_text: query,
-                        k: 5
-                      }
-                    }
-                  }
-                ]
+              neural: { // neural search using sentence transformer
+                embedding: {
+                  query_text: query,
+                  k: 5
+                }
               }
             }
           ]
         }
-      }
-    };
-
-    // Add reranking context if using reranking
-    if (useReranking) {
-      searchBody.ext = {
+      },
+      ext: {
         rerank: { // rerank results using cross-encoder
           query_context: {
             query_text: query
           }
         }
-      };
-    }
+      }
+    };
 
-    const searchResponse = await axios.post(`http://opensearch:9200/users/_search?search_pipeline=${searchPipeline}`, searchBody);
+    const searchResponse = await axios.post(`http://opensearch:9200/users/_search?search_pipeline=users-search-pipeline`, searchBody);
 
     const hits = searchResponse.data.hits.hits;
-    const hitIds = hits.map(hit => hit._id);
+    const userIds = hits.map(hit => hit._id);
 
-    // Filter users that actually matched the search
-    const matchedUsers = allUsers.filter(user => hitIds.includes(user._id.toString()));
+    // Fetch full documents from MongoDB using the IDs
+    const plainUsers = await this.find({
+      _id: { $in: userIds }
+    }).populate('managerId', 'firstName lastName email jobTitle');
 
-    return matchedUsers.map((user) => {
+    return plainUsers.map((user) => {
       const score = hits.find(x => x._id === user.id)._score;
       return {...user._doc, score};
     })

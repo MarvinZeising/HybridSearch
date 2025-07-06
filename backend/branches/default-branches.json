@@ -1,102 +1,14 @@
 [
   {
-    "title": "Welcome to TechCorp US",
-    "description": "Company overview and mission statement for our North American operations",
-    "content": "TechCorp US is a leading technology company specializing in innovative software solutions. Founded in 2020, we have grown to become a major player in the tech industry with offices in New York, San Francisco, and Los Angeles. Our mission is to transform businesses through cutting-edge technology and exceptional service. We pride ourselves on our diverse team of talented engineers, designers, and business professionals who work together to deliver world-class products and services to our clients.",
-    "branchId": "branch1",
-    "createdBy": "EMP001",
-    "createdByName": "Sarah Johnson",
-    "updatedBy": "EMP001",
-    "updatedByName": "Sarah Johnson"
+    "id": "branch1",
+    "title": "TechCorp US"
   },
   {
-    "title": "Employee Benefits Package",
-    "description": "Comprehensive benefits overview for all TechCorp US employees",
-    "content": "At TechCorp US, we believe in taking care of our employees. Our comprehensive benefits package includes: Health Insurance (Medical, Dental, Vision) with 100% company-paid premiums, 401(k) retirement plan with 6% company match, Unlimited PTO policy, $2,000 annual learning and development budget, Free lunch program, Gym membership reimbursement, Mental health support through our Employee Assistance Program, Flexible work arrangements including remote work options, and Parental leave of up to 16 weeks.",
-    "branchId": "branch1",
-    "createdBy": "EMP005",
-    "createdByName": "Lisa Thompson",
-    "updatedBy": "EMP005",
-    "updatedByName": "Lisa Thompson"
+    "id": "branch2",
+    "title": "TechConsult Europe"
   },
   {
-    "title": "Remote Work Policy",
-    "description": "Guidelines and procedures for remote work arrangements",
-    "content": "TechCorp US supports flexible work arrangements to promote work-life balance and productivity. Full-time employees are eligible for remote work after completing their initial 90-day probationary period. Remote work days must be pre-approved by your direct manager. Home office setup stipend of $1,000 is available for full-time remote employees. All remote workers must maintain regular business hours and be available for meetings and collaboration. Internet connectivity and equipment requirements must be met for remote work approval.",
-    "branchId": "branch1",
-    "createdBy": "EMP005",
-    "createdByName": "Lisa Thompson",
-    "updatedBy": "EMP005",
-    "updatedByName": "Lisa Thompson"
-  },
-  {
-    "title": "About TechConsult Europe",
-    "description": "Introduction to our European consulting operations",
-    "content": "TechConsult Europe is a premier technology consulting firm with offices across Stockholm, Berlin, Paris, Milan, Lisbon, and London. Established in 2019, we specialize in digital transformation, cloud migration, and enterprise software implementation. Our team of experienced consultants brings deep technical expertise and industry knowledge to help European businesses modernize their technology infrastructure and processes. We pride ourselves on our multilingual capabilities and deep understanding of European business culture and regulatory requirements.",
-    "branchId": "branch2",
-    "createdBy": "EMP021",
-    "createdByName": "Henrik Andersson",
-    "updatedBy": "EMP021",
-    "updatedByName": "Henrik Andersson"
-  },
-  {
-    "title": "GDPR Compliance Guidelines",
-    "description": "Essential GDPR compliance procedures for all European operations",
-    "content": "As a European company, TechConsult Europe is committed to full GDPR compliance. All employees must complete mandatory GDPR training within 30 days of hire. Personal data collection must be limited to what is necessary for business purposes. Data subjects have the right to access, rectify, erase, and port their personal data. Data breaches must be reported to the Data Protection Officer within 24 hours. Cross-border data transfers require appropriate safeguards. Privacy by design principles must be implemented in all new projects and systems.",
-    "branchId": "branch2",
-    "createdBy": "EMP025",
-    "createdByName": "Lars Eriksson",
-    "updatedBy": "EMP025",
-    "updatedByName": "Lars Eriksson"
-  },
-  {
-    "title": "European Work Council Guidelines",
-    "description": "Information about employee representation and consultation procedures",
-    "content": "TechConsult Europe maintains a European Work Council to ensure proper employee consultation and information sharing across all European locations. Employee representatives are elected from each major office location. The council meets quarterly to discuss company performance, strategic direction, and matters affecting employees. All major organizational changes, including restructuring or office relocations, must be discussed with the European Work Council before implementation. Employees have the right to request consultation on workplace matters through their local representatives.",
-    "branchId": "branch2",
-    "createdBy": "EMP025",
-    "createdByName": "Lars Eriksson",
-    "updatedBy": "EMP025",
-    "updatedByName": "Lars Eriksson"
-  },
-  {
-    "title": "Asia Pacific Manufacturing Overview",
-    "description": "Introduction to our manufacturing operations across Asia Pacific",
-    "content": "Asia Pacific Manufacturing is a leading industrial manufacturing company with facilities in Tokyo, Shanghai, and Mumbai. Since 2018, we have been producing high-quality consumer electronics and industrial components for global markets. Our state-of-the-art facilities employ advanced automation and lean manufacturing principles to ensure consistent quality and efficiency. With over 500 employees across three countries, we are committed to sustainable manufacturing practices and continuous improvement in all aspects of our operations.",
-    "branchId": "branch3",
-    "createdBy": "EMP031",
-    "createdByName": "Takeshi Yamamoto",
-    "updatedBy": "EMP031",
-    "updatedByName": "Takeshi Yamamoto"
-  },
-  {
-    "title": "Quality Management System",
-    "description": "ISO 9001 quality standards and procedures",
-    "content": "Asia Pacific Manufacturing maintains ISO 9001:2015 certification across all facilities. Our Quality Management System ensures consistent product quality through rigorous process controls, regular audits, and continuous improvement initiatives. All production processes are documented and standardized. Quality control checkpoints are established at every stage of manufacturing. Non-conforming products are identified, quarantined, and properly dispositioned. Customer complaints are investigated and resolved within 48 hours. Regular management reviews ensure the QMS remains effective and aligned with business objectives.",
-    "branchId": "branch3",
-    "createdBy": "EMP035",
-    "createdByName": "Mei Chen",
-    "updatedBy": "EMP035",
-    "updatedByName": "Mei Chen"
-  },
-  {
-    "title": "Safety Protocols and Procedures",
-    "description": "Workplace safety guidelines for all manufacturing facilities",
-    "content": "Employee safety is our top priority at Asia Pacific Manufacturing. All employees must complete safety orientation training before starting work. Personal Protective Equipment (PPE) is mandatory in all production areas. Safety inspections are conducted monthly by certified safety officers. Emergency procedures include evacuation routes, assembly points, and emergency contact information posted throughout facilities. Incident reporting is required for all accidents, near-misses, and safety concerns. Regular safety meetings are held to discuss hazards, share best practices, and review safety performance metrics.",
-    "branchId": "branch3",
-    "createdBy": "EMP034",
-    "createdByName": "Hiroshi Tanaka",
-    "updatedBy": "EMP034",
-    "updatedByName": "Hiroshi Tanaka"
-  },
-  {
-    "title": "Environmental Sustainability Initiative",
-    "description": "Our commitment to sustainable manufacturing practices",
-    "content": "Asia Pacific Manufacturing is committed to reducing our environmental impact through comprehensive sustainability initiatives. We have implemented energy-efficient manufacturing processes that have reduced power consumption by 25% over the past two years. Waste reduction programs include recycling of materials, minimizing packaging, and proper disposal of hazardous materials. Water conservation measures include recycling systems and leak detection programs. We are working towards carbon neutrality by 2030 through renewable energy adoption and supply chain optimization.",
-    "branchId": "branch3",
-    "createdBy": "EMP032",
-    "createdByName": "Li Wei",
-    "updatedBy": "EMP032",
-    "updatedByName": "Li Wei"
+    "id": "branch3",
+    "title": "Asia Pacific Manufacturing"
   }
 ]

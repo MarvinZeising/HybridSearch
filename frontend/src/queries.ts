@@ -9,9 +9,8 @@ export const fetchAllPosts = async (): Promise<NewsPost[]> => {
   return response.data;
 };
 
-export const searchPosts = async ({ query, useReranking }: { query: string, useReranking: boolean }): Promise<NewsPost[]> => {
-  const endpoint = useReranking ? '/api/news/search-reranked' : '/api/news/search';
-  const response = await axios.post<NewsPost[]>(`http://localhost:4000${endpoint}`, {query});
+export const searchPosts = async ({ query, branchId }: { query: string, branchId: string }): Promise<NewsPost[]> => {
+  const response = await axios.post<NewsPost[]>('http://localhost:4000/api/news/search', {query, branchId});
   return response.data;
 };
 
@@ -30,9 +29,8 @@ export const fetchAllPages = async (): Promise<Page[]> => {
   return response.data;
 };
 
-export const searchPages = async ({ query, useReranking }: { query: string, useReranking: boolean }): Promise<Page[]> => {
-  const endpoint = useReranking ? '/api/pages/search-reranked' : '/api/pages/search';
-  const response = await axios.post<Page[]>(`http://localhost:4000${endpoint}`, {query});
+export const searchPages = async ({ query, branchId }: { query: string, branchId: string }): Promise<Page[]> => {
+  const response = await axios.post<Page[]>('http://localhost:4000/api/pages/search', {query, branchId});
   return response.data;
 };
 
@@ -80,16 +78,14 @@ export const fetchUsersByManager = async (managerId: string): Promise<User[]> =>
   return response.data;
 };
 
-export const searchUsers = async ({ query, useReranking }: { query: string, useReranking: boolean }): Promise<User[]> => {
-  const endpoint = useReranking ? '/api/users/search-reranked' : '/api/users/search';
-  const response = await axios.post<User[]>(`http://localhost:4000${endpoint}`, {query});
+export const searchUsers = async ({ query, branchId }: { query: string, branchId: string }): Promise<User[]> => {
+  const response = await axios.post<User[]>('http://localhost:4000/api/users/search', {query, branchId});
   return response.data;
 };
 
-export const multiSearch = async (query: string, useReranking: boolean = false, branchId: string): Promise<MultiSearchResponse> => {
+export const multiSearch = async (query: string, branchId: string): Promise<MultiSearchResponse> => {
   const response = await axios.post<MultiSearchResponse>('http://localhost:4000/api/search', {
     query,
-    useReranking: useReranking || false,
     branchId: branchId
   });
   return response.data;
@@ -120,8 +116,7 @@ export const deleteBranch = async (id: string): Promise<void> => {
   await axios.delete(`http://localhost:4000/api/branches/${id}`);
 };
 
-export const searchBranches = async ({ query, useReranking, branchId }: SearchRequest & { branchId?: string }): Promise<Branch[]> => {
-  const endpoint = useReranking ? '/api/branches/search-reranked' : '/api/branches/search';
-  const response = await axios.post<Branch[]>(`http://localhost:4000${endpoint}`, { query, branchId });
+export const searchBranches = async ({ query, branchId }: { query: string, branchId?: string }): Promise<Branch[]> => {
+  const response = await axios.post<Branch[]>('http://localhost:4000/api/branches/search', { query, branchId });
   return response.data;
 };

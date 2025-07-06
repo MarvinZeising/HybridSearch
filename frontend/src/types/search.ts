@@ -46,5 +46,4 @@ export interface MultiSearchResponse {
 // Search request parameters
 export interface SearchRequest {
   query: string;
-  useReranking?: boolean;
 }

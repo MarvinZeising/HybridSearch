@@ -11,86 +11,69 @@ const NewsPostSchema = new mongoose.Schema({
   title: String,
   description: String,
   content: String,
+  branchId: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
 });
 
 const NewsPost = mongoose.model('Post', NewsPostSchema);
 
-// Static method to search posts using OpenSearch
-NewsPost.search = async function(query, branchId, useReranking = false) {
+// Static method to search posts using OpenSearch (with reranking)
+NewsPost.search = async function(query, branchId) {
   try {
-    // First filter by branchId in MongoDB
-    const allPosts = await this.find({ branchId: branchId });
-
-    if (allPosts.length === 0) {
-      return [];
-    }
-
-    const postIds = allPosts.map(post => post._id.toString());
-
-    const searchPipeline = useReranking ? 'posts-search-pipeline-reranked' : 'posts-search-pipeline';
     const searchBody = {
       query: {
-        bool: {
-          must: [
+        hybrid: {
+          filter: {
+            term: {
+              branchId: branchId
+            }
+          },
+          queries: [
             {
-              terms: {
-                _id: postIds
+              multi_match: { // keyword search
+                query: query,
+                fields: ['title^4', 'description'],
+                type: 'best_fields',
+                fuzziness: 'AUTO'
               }
             },
             {
-              hybrid: {
-                queries: [
-                  {
-                    multi_match: { // keyword search
-                      query: query,
-                      fields: ['title^4', 'description'],
-                      type: 'best_fields',
-                      fuzziness: 'AUTO'
-                    }
-                  },
-                  {
-                    nested: {
-                      score_mode: 'max',
-                      path: 'embeddings',
-                      query: {
-                        neural: { // neural search using sentence transformer
-                          'embeddings.knn': {
-                            query_text: query,
-                            k: 5
-                          }
-                        }
-                      }
+              nested: {
+                score_mode: 'max',
+                path: 'embeddings',
+                query: {
+                  neural: { // neural search using sentence transformer
+                    'embeddings.knn': {
+                      query_text: query,
+                      k: 5
                     }
                   }
-                ]
+                }
               }
             }
           ]
         }
-      }
-    };
-
-    // Add reranking context if using reranking
-    if (useReranking) {
-      searchBody.ext = {
+      },
+      ext: {
         rerank: { // rerank results using cross-encoder
           query_context: {
             query_text: query
           }
         }
-      };
-    }
+      }
+    };
 
-    const searchResponse = await axios.post(`http://opensearch:9200/posts/_search?search_pipeline=${searchPipeline}`, searchBody);
+    const searchResponse = await axios.post(`http://opensearch:9200/posts/_search?search_pipeline=posts-search-pipeline`, searchBody);
 
     const hits = searchResponse.data.hits.hits;
-    const hitIds = hits.map(hit => hit._id);
+    const postIds = hits.map(hit => hit._id);
 
-    // Filter posts that actually matched the search
-    const matchedPosts = allPosts.filter(post => hitIds.includes(post._id.toString()));
+    // Fetch full documents from MongoDB using the IDs
+    const plainPosts = await this.find({
+      _id: { $in: postIds }
+    });
 
-    return matchedPosts.map((post) => {
+    return plainPosts.map((post) => {
       const score = hits.find(x => x._id === post.id)._score;
       return {...post._doc, score};
     })

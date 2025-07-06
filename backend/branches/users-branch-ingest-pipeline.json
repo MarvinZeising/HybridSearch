@@ -1,0 +1,62 @@
+{
+  "description": "Pipeline for processing user documents",
+  "processors": [
+    {
+      "set": {
+        "field": "_index",
+        "value": "branch-{{branchId}}"
+      }
+    },
+    {
+      "set": {
+        "field": "title",
+        "value": "{{firstName}} {{lastName}}"
+      }
+    },
+    {
+      "set": {
+        "field": "description",
+        "value": "{{jobTitle}} in {{department}}"
+      }
+    },
+    {
+      "set": {
+        "field": "content",
+        "value": "{{department}} - {{location}} - {{jobTitle}} - {{email}} - {{phone}}"
+      }
+    },
+    {
+      "text_chunking": {
+        "algorithm": {
+          "fixed_token_length": {
+            "token_limit": 364,
+            "overlap_rate": 0.2,
+            "tokenizer": "standard"
+          }
+        },
+        "field_map": {
+          "content": "content_chunks"
+        }
+      }
+    },
+    {
+      "foreach": {
+        "field": "content_chunks",
+        "processor": {
+          "set": {
+            "field": "_ingest._value",
+            "value": "{{{title}}}: {{{_ingest._value}}}"
+          }
+        }
+      }
+    },
+    {
+      "text_embedding": {
+        "model_id": "MODEL_ID",
+        "field_map": {
+          "content_chunks": "embeddings"
+        }
+      }
+    }
+  ]
+}

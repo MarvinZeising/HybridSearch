@@ -8,7 +8,6 @@ const CentralSearch: React.FC = () => {
   const { currentCEO, currentBranchId } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [useReranking, setUseReranking] = useState(false);
   const [selectedType, setSelectedType] = useState<'all' | 'post' | 'page' | 'user' | 'branch'>('all');
 
   // Debounce search query
@@ -21,8 +20,8 @@ const CentralSearch: React.FC = () => {
   }, [searchQuery]);
 
   const { data: searchResults, isLoading, error } = useQuery({
-    queryKey: ['central-search', debouncedQuery, useReranking, currentBranchId],
-    queryFn: () => multiSearch(debouncedQuery, useReranking, currentBranchId),
+    queryKey: ['central-search', debouncedQuery, currentBranchId],
+    queryFn: () => multiSearch(debouncedQuery, currentBranchId),
     enabled: debouncedQuery.length > 0,
   });
 
@@ -226,19 +225,7 @@ const CentralSearch: React.FC = () => {
           </svg>
         </div>
 
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center space-x-4">
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={useReranking}
-                onChange={(e) => setUseReranking(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Use reranking</span>
-            </label>
-          </div>
-
+        <div className="flex items-center justify-end mt-4">
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-600">Filter:</span>
             <select

@@ -14,87 +14,70 @@ const PageSchema = new mongoose.Schema({
   category: { type: String, default: 'General' },
   tags: [String],
   isPublished: { type: Boolean, default: true },
+  branchId: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
 
 const Page = mongoose.model('Page', PageSchema);
 
-// Static method to search pages using OpenSearch
-Page.search = async function(query, branchId, useReranking = false) {
+// Static method to search pages using OpenSearch (with reranking)
+Page.search = async function(query, branchId) {
   try {
-    // First filter by branchId in MongoDB
-    const allPages = await this.find({ branchId: branchId });
-
-    if (allPages.length === 0) {
-      return [];
-    }
-
-    const pageIds = allPages.map(page => page._id.toString());
-
-    const searchPipeline = useReranking ? 'pages-search-pipeline-reranked' : 'pages-search-pipeline';
     const searchBody = {
       query: {
-        bool: {
-          must: [
+        hybrid: {
+          filter: {
+            term: {
+              branchId: branchId
+            }
+          },
+          queries: [
             {
-              terms: {
-                _id: pageIds
+              multi_match: { // keyword search
+                query: query,
+                fields: ['title^4', 'description^2', 'content'],
+                type: 'best_fields',
+                fuzziness: 'AUTO'
               }
             },
             {
-              hybrid: {
-                queries: [
-                  {
-                    multi_match: { // keyword search
-                      query: query,
-                      fields: ['title^4', 'description^2', 'content'],
-                      type: 'best_fields',
-                      fuzziness: 'AUTO'
-                    }
-                  },
-                  {
-                    nested: {
-                      score_mode: 'max',
-                      path: 'embeddings',
-                      query: {
-                        neural: { // neural search using sentence transformer
-                          'embeddings.knn': {
-                            query_text: query,
-                            k: 5
-                          }
-                        }
-                      }
+              nested: {
+                score_mode: 'max',
+                path: 'embeddings',
+                query: {
+                  neural: { // neural search using sentence transformer
+                    'embeddings.knn': {
+                      query_text: query,
+                      k: 5
                     }
                   }
-                ]
+                }
               }
             }
           ]
         }
-      }
-    };
-
-    // Add reranking context if using reranking
-    if (useReranking) {
-      searchBody.ext = {
+      },
+      ext: {
         rerank: { // rerank results using cross-encoder
           query_context: {
             query_text: query
           }
         }
-      };
-    }
+      }
+    };
 
-    const searchResponse = await axios.post(`http://opensearch:9200/pages/_search?search_pipeline=${searchPipeline}`, searchBody);
+    const searchResponse = await axios.post(`http://opensearch:9200/pages/_search?search_pipeline=pages-search-pipeline`, searchBody);
 
     const hits = searchResponse.data.hits.hits;
-    const hitIds = hits.map(hit => hit._id);
+    const pageIds = hits.map(hit => hit._id);
 
-    // Filter pages that actually matched the search
-    const matchedPages = allPages.filter(page => hitIds.includes(page._id.toString()));
+    // Fetch full documents from MongoDB using the IDs
+    const plainPages = await this.find({
+      _id: { $in: pageIds }
+    });
 
-    return matchedPages.map((page) => {
+    return plainPages.map((page) => {
       const score = hits.find(x => x._id === page.id)._score;
       return {...page._doc, score};
     })

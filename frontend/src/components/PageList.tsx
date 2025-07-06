@@ -2,25 +2,23 @@ import {Link, useSearchParams} from 'react-router-dom';
 import {useQuery} from '@tanstack/react-query';
 import SearchBar from './SearchBar';
 import {fetchAllPages, searchPages} from "../queries.ts";
+import {useSession} from '../contexts/SessionContext';
 
 const PageList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
-  const useReranking = searchParams.get('rerank') === 'true';
+  const { currentBranchId } = useSession();
 
   const { data: pages = [], error } = useQuery({
-    queryKey: ['pages', query, useReranking],
-    queryFn: () => query ? searchPages({ query, useReranking }) : fetchAllPages(),
+    queryKey: ['pages', query, currentBranchId],
+    queryFn: () => query ? searchPages({ query, branchId: currentBranchId }) : fetchAllPages(),
     enabled: true,
   });
 
-  const handleSearchTermChange = (searchTerm: string, useReranking: boolean) => {
+  const handleSearchTermChange = (searchTerm: string) => {
     const newParams = new URLSearchParams();
     if (searchTerm.trim()) {
       newParams.set('q', searchTerm);
-      if (useReranking) {
-        newParams.set('rerank', 'true');
-      }
     }
     setSearchParams(newParams);
   }

@@ -6,13 +6,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function createIndex(sentenceTransformerModelId, rerankerModelId) {
+async function createPostsIndex(sentenceTransformerModelId, rerankerModelId) {
   try {
     await Promise.all([
       createIndexTemplate(),
       createIngestPipeline(sentenceTransformerModelId),
-      createSearchPipeline(sentenceTransformerModelId),
-      createSearchPipelineReranked(sentenceTransformerModelId, rerankerModelId),
+      createSearchPipeline(sentenceTransformerModelId, rerankerModelId),
     ])
 
     console.log(`Successfully created model, pipeline, and index template for posts`);
@@ -37,23 +36,16 @@ async function createIngestPipeline(modelId) {
   console.log('Created Ingest Pipeline: ', response.data)
 }
 
-async function createSearchPipeline(sentenceTransformerModelId) {
+
+
+async function createSearchPipeline(sentenceTransformerModelId, rerankerModelId) {
   const pipeline = JSON.parse(
     fs.readFileSync(path.join(__dirname, 'posts-search-pipeline.json'), 'utf8')
+      .replace(/RERANKER_MODEL_ID/gm, rerankerModelId)
       .replace(/MODEL_ID/gm, sentenceTransformerModelId)
   );
   const response = await axios.put(`http://opensearch:9200/_search/pipeline/posts-search-pipeline`, pipeline);
   console.log('Created Search Pipeline: ', response.data)
-}
-
-async function createSearchPipelineReranked(sentenceTransformerModelId, rerankerModelId) {
-  const pipeline = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'posts-search-pipeline-reranked.json'), 'utf8')
-      .replace(/RERANKER_MODEL_ID/gm, rerankerModelId)
-      .replace(/MODEL_ID/gm, sentenceTransformerModelId)
-  );
-  const response = await axios.put(`http://opensearch:9200/_search/pipeline/posts-search-pipeline-reranked`, pipeline);
-  console.log('Created Search Pipeline Reranked: ', response.data)
 }
 
 async function getSentenceTransformerModelId() {
@@ -70,8 +62,7 @@ async function createPagesIndex(sentenceTransformerModelId, rerankerModelId) {
     await Promise.all([
       createPagesIndexTemplate(),
       createPagesIngestPipeline(sentenceTransformerModelId),
-      createPagesSearchPipeline(sentenceTransformerModelId),
-      createPagesSearchPipelineReranked(sentenceTransformerModelId, rerankerModelId),
+      createPagesSearchPipeline(sentenceTransformerModelId, rerankerModelId),
     ])
     console.log(`Successfully created model, pipeline, and index template for pages`);
   } catch (error) {
@@ -95,23 +86,16 @@ async function createPagesIngestPipeline(modelId) {
   console.log('Created Pages Ingest Pipeline: ', response.data)
 }
 
-async function createPagesSearchPipeline(sentenceTransformerModelId) {
+
+
+async function createPagesSearchPipeline(sentenceTransformerModelId, rerankerModelId) {
   const pipeline = JSON.parse(
     fs.readFileSync(path.join(__dirname, '../pages/pages-search-pipeline.json'), 'utf8')
+      .replace(/RERANKER_MODEL_ID/gm, rerankerModelId)
       .replace(/MODEL_ID/gm, sentenceTransformerModelId)
   );
   const response = await axios.put(`http://opensearch:9200/_search/pipeline/pages-search-pipeline`, pipeline);
   console.log('Created Pages Search Pipeline: ', response.data)
-}
-
-async function createPagesSearchPipelineReranked(sentenceTransformerModelId, rerankerModelId) {
-  const pipeline = JSON.parse(
-    fs.readFileSync(path.join(__dirname, '../pages/pages-search-pipeline-reranked.json'), 'utf8')
-      .replace(/RERANKER_MODEL_ID/gm, rerankerModelId)
-      .replace(/MODEL_ID/gm, sentenceTransformerModelId)
-  );
-  const response = await axios.put(`http://opensearch:9200/_search/pipeline/pages-search-pipeline-reranked`, pipeline);
-  console.log('Created Pages Search Pipeline Reranked: ', response.data)
 }
 
 async function createUsersIndex(sentenceTransformerModelId, rerankerModelId) {
@@ -119,8 +103,7 @@ async function createUsersIndex(sentenceTransformerModelId, rerankerModelId) {
     await Promise.all([
       createUsersIndexTemplate(),
       createUsersIngestPipeline(sentenceTransformerModelId),
-      createUsersSearchPipeline(sentenceTransformerModelId),
-      createUsersSearchPipelineReranked(sentenceTransformerModelId, rerankerModelId),
+      createUsersSearchPipeline(sentenceTransformerModelId, rerankerModelId),
     ])
     console.log(`Successfully created model, pipeline, and index template for users`);
   } catch (error) {
@@ -144,23 +127,16 @@ async function createUsersIngestPipeline(modelId) {
   console.log('Created Users Ingest Pipeline: ', response.data)
 }
 
-async function createUsersSearchPipeline(sentenceTransformerModelId) {
+
+
+async function createUsersSearchPipeline(sentenceTransformerModelId, rerankerModelId) {
   const pipeline = JSON.parse(
     fs.readFileSync(path.join(__dirname, '../users/users-search-pipeline.json'), 'utf8')
+      .replace(/RERANKER_MODEL_ID/gm, rerankerModelId)
       .replace(/MODEL_ID/gm, sentenceTransformerModelId)
   );
   const response = await axios.put(`http://opensearch:9200/_search/pipeline/users-search-pipeline`, pipeline);
   console.log('Created Users Search Pipeline: ', response.data)
 }
 
-async function createUsersSearchPipelineReranked(sentenceTransformerModelId, rerankerModelId) {
-  const pipeline = JSON.parse(
-    fs.readFileSync(path.join(__dirname, '../users/users-search-pipeline-reranked.json'), 'utf8')
-      .replace(/RERANKER_MODEL_ID/gm, rerankerModelId)
-      .replace(/MODEL_ID/gm, sentenceTransformerModelId)
-  );
-  const response = await axios.put(`http://opensearch:9200/_search/pipeline/users-search-pipeline-reranked`, pipeline);
-  console.log('Created Users Search Pipeline Reranked: ', response.data)
-}
-
-export { createIndex, getSentenceTransformerModelId, createPagesIndex, createUsersIndex };
+export { createPostsIndex, getSentenceTransformerModelId, createPagesIndex, createUsersIndex };

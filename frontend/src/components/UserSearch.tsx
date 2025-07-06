@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { searchUsers } from '../queries';
 import type { User } from '../types/users';
+import { useSession } from '../contexts/SessionContext';
 
 const UserSearch: React.FC = () => {
   const [query, setQuery] = useState('');
-  const [useReranking, setUseReranking] = useState(false);
   const [results, setResults] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { currentBranchId } = useSession();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,7 +17,7 @@ const UserSearch: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await searchUsers({ query: query.trim(), useReranking });
+      const data = await searchUsers({ query: query.trim(), branchId: currentBranchId });
       setResults(data);
     } catch (err) {
       setError('Failed to search users');
@@ -42,15 +43,6 @@ const UserSearch: React.FC = () => {
             />
           </div>
           <div className="flex items-center gap-4">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={useReranking}
-                onChange={(e) => setUseReranking(e.target.checked)}
-                className="mr-2"
-              />
-              <span className="text-sm text-gray-700">Use Reranking</span>
-            </label>
             <button
               type="submit"
               disabled={loading || !query.trim()}
@@ -74,11 +66,9 @@ const UserSearch: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-900">
               Search Results ({results.length})
             </h2>
-            {useReranking && (
-              <p className="text-sm text-gray-600 mt-1">
-                Results reranked using cross-encoder for better relevance
-              </p>
-            )}
+            <p className="text-sm text-gray-600 mt-1">
+              Results reranked using cross-encoder for better relevance
+            </p>
           </div>
           <div className="divide-y divide-gray-200">
             {results.map((user) => (

@@ -15,5 +15,17 @@
         }
       }
     }
+  ],
+  "response_processors": [
+    {
+      "rerank": {
+        "ml_opensearch": {
+          "model_id": "RERANKER_MODEL_ID"
+        },
+        "context": {
+          "document_fields": [ "title", "content"]
+        }
+      }
+    }
   ]
 }

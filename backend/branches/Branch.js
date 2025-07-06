@@ -1,11 +1,5 @@
 import mongoose from 'mongoose';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import axios from 'axios';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const BranchSchema = new mongoose.Schema({
   title: String,
@@ -22,11 +16,9 @@ const BranchSchema = new mongoose.Schema({
 
 const Branch = mongoose.model('Branch', BranchSchema);
 
-// Static method to search branches using OpenSearch
-Branch.search = async function(query, branchId = null, useReranking = false) {
+// Static method to search branches using OpenSearch (with reranking)
+Branch.search = async function(query, branchId = null) {
   try {
-    const searchPipeline = useReranking ? 'branches-search-pipeline-reranked' : 'branches-search-pipeline';
-
     // If searching in a specific branch, use that index, otherwise search all branch indices
     const indexName = branchId ? `branch-${branchId}` : 'branch-*';
 
@@ -59,19 +51,15 @@ Branch.search = async function(query, branchId = null, useReranking = false) {
           ]
         }
       },
-      search_pipeline: searchPipeline
-    };
-
-    // Add reranking context if using reranking
-    if (useReranking) {
-      searchBody.ext = {
+      search_pipeline: 'branches-search-pipeline',
+      ext: {
         rerank: { // rerank results using cross-encoder
           query_context: {
             query_text: query
           }
         }
-      };
-    }
+      }
+    };
 
     const searchResponse = await axios.post(`http://opensearch:9200/${indexName}/_search`, searchBody);
 
@@ -94,30 +82,78 @@ Branch.search = async function(query, branchId = null, useReranking = false) {
   }
 };
 
-async function initializeDefaultBranches() {
+// Static method to perform central search on branch index (with reranking)
+Branch.centralSearch = async function(query, branchId) {
   try {
-    console.log('Creating branches collection');
-    await Branch.createCollection();
+    // Query the branch index directly, which contains all aggregated data for this branch
+    const searchBody = {
+      query: {
+        hybrid: {
+          queries: [
+            {
+              multi_match: {
+                query: query,
+                fields: ['title^4', 'description^2', 'content', 'firstName^3', 'lastName^3', 'jobTitle^2', 'department^2', 'fullName^4'],
+                type: 'best_fields',
+                fuzziness: 'AUTO'
+              }
+            },
+            {
+              nested: {
+                score_mode: 'max',
+                path: 'embeddings',
+                query: {
+                  neural: {
+                    'embeddings.knn': {
+                      query_text: query,
+                      k: 10
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      search_pipeline: 'branches-search-pipeline-reranked',
+      ext: {
+        rerank: {
+          query_context: {
+            query_text: query
+          }
+        }
+      }
+    };
 
-    // Check if we already have branches
-    const count = await Branch.countDocuments();
-    if (count === 0) {
-      console.log('No branches found, inserting default branches...');
+    // Execute search on the branch index
+    const searchResponse = await axios.post(`http://opensearch:9200/branch-${branchId}/_search`, searchBody);
+    const hits = searchResponse.data.hits.hits;
+    const total = searchResponse.data.hits.total.value;
 
-      // Read and parse the default branches
-      const defaultBranchesPath = path.join(__dirname, 'default-branches.json');
-      const defaultBranches = JSON.parse(fs.readFileSync(defaultBranchesPath, 'utf8'));
+    // Transform results to include type and score information
+    const results = hits.map(hit => {
+      const source = hit._source;
+      return {
+        ...source,
+        score: hit._score,
+        type: source.type || 'branch' // Use the type from the source, fallback to 'branch'
+      };
+    });
 
-      // Insert the branches
-      await Branch.insertMany(defaultBranches);
-      console.log('Default branches inserted successfully');
-    } else {
-      console.log('Database already contains branches, skipping default branches insertion');
-    }
+    return {
+      results: results,
+      totalHits: {
+        total: total,
+        posts: results.filter(r => r.type === 'post').length,
+        pages: results.filter(r => r.type === 'page').length,
+        users: results.filter(r => r.type === 'user').length,
+        branches: results.filter(r => r.type === 'branch').length
+      }
+    };
   } catch (error) {
-    console.error('Error inserting default branches:', error);
-    throw error;
+    console.error('Branch central search error:', error.response?.data || error);
+    throw new Error('Failed to perform central search');
   }
-}
+};
 
-export { Branch, initializeDefaultBranches };
+export { Branch };
