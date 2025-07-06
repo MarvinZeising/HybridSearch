@@ -22,34 +22,16 @@ resume = true
 # Additional settings for better reliability
 replay = true
 
-# Keyword-search mappings
-# [[mapping]]
-# namespace = "news.posts"
-# index = "posts-1"
-# pipeline = "posts-ingest-pipeline"
+config-database-name = "monstache-1"
 
-# [[mapping]]
-# namespace = "news.pages"
-# index = "pages-1"
-# pipeline = "pages-ingest-pipeline"
-
-# [[mapping]]
-# namespace = "news.users"
-# index = "users-1"
-# pipeline = "users-ingest-pipeline"
-
-# Semantic search mappings
 [[mapping]]
 namespace = "news.posts"
-index = "branch-default"
-pipeline = "posts-branch-ingest-pipeline"
+index = "posts-1"
 
 [[mapping]]
 namespace = "news.pages"
-index = "branch-default"
-pipeline = "pages-branch-ingest-pipeline"
+index = "pages-1"
 
 [[mapping]]
 namespace = "news.users"
-index = "branch-default"
-pipeline = "users-branch-ingest-pipeline"
+index = "users-1"

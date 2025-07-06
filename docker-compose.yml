@@ -106,11 +106,28 @@ services:
       opensearch:
         condition: service_healthy
 
-  monstache:
+  monstache-1:
     image: rwynn/monstache:latest
-    container_name: monstache
+    container_name: monstache-1
     volumes:
-      - ./monstache/monstache-config.toml:/config.toml
+      - ./monstache/monstache-config-1.toml:/config.toml
+    command: -f /config.toml
+    networks:
+      - opensearch-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+
+  monstache-2:
+    # image: rwynn/monstache:latest
+    image: monstache-local:1
+    container_name: monstache-2
+    volumes:
+      - ./monstache/monstache-config-2.toml:/config.toml
     command: -f /config.toml
     networks:
       - opensearch-network
