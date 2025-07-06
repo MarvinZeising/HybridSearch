@@ -1,7 +1,7 @@
 {
   "name": "huggingface/sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
   "version": "1.0.2",
-  "description": "This is a sentence-transformers model: It maps sentences & paragraphs to a 384 dimensional dense vector space and was designed for semantic search. It has been trained on 215M (question, answer) pairs from diverse sources.",
+  "description": "This is a sentence-transformers model: It maps sentences and paragraphs to a 384 dimensional dense vector space and was designed for semantic search. It has been trained on 215M (question, answer) pairs from diverse sources.",
   "model_format": "ONNX",
   "model_task_type": "TEXT_EMBEDDING",
   "model_config": {

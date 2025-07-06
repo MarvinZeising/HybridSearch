@@ -51,24 +51,29 @@ async function deployModel(fileName) {
   const model = JSON.parse(fs.readFileSync(path.join(__dirname, fileName), 'utf8'));
   console.log('Deploying model ' + model.name + ' ...')
 
-  const response = await axios.post('http://opensearch:9200/_plugins/_ml/models/_register?deploy=true', model)
+  try {
+    const response = await axios.post('http://opensearch:9200/_plugins/_ml/models/_register?deploy=true', model)
 
-  let i = 0
-  let modelId;
-  do {
-    try {
-      modelId = await getModelIdByTask(response.data.task_id)
-      break;
-    } catch (error) {
-      await sleep(3);
-    }
-  } while (i++ < 60)
+    let i = 0
+    let modelId;
+    do {
+      try {
+        modelId = await getModelIdByTask(response.data.task_id)
+        break;
+      } catch (error) {
+        await sleep(3);
+      }
+    } while (i++ < 60)
 
-  if (!modelId) throw new Error('Model did not deploy within 3 minutes')
+    if (!modelId) throw new Error('Model did not deploy within 3 minutes')
 
-  // Store modelId for future use
-  await storeModelId(modelType, modelId);
-  return modelId;
+    // Store modelId for future use
+    await storeModelId(modelType, modelId);
+    return modelId;
+  } catch (error) {
+    console.error('Error deploying model:', error.response?.data || error);
+    throw error;
+  }
 }
 
 async function getModelIdByTask(taskId) {
