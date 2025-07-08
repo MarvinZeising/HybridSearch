@@ -1,0 +1,22 @@
+{
+  "name": "hybridsearch",
+  "version": "1.0.0",
+  "description": "A modern news search application that combines MongoDB for data storage with OpenSearch for advanced search capabilities, featuring hybrid search (keyword + neural) and semantic search capabilities.",
+  "main": "index.js",
+  "dependencies": {
+    "hono": "^4.8.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.2",
+    "@types/node": "^24.0.11"
+  },
+  "scripts": {
+    "test": "node_modules/.bin/playwright test",
+    "test:headed": "node_modules/.bin/playwright test --headed",
+    "test:ui": "node_modules/.bin/playwright test --ui",
+    "test:report": "node_modules/.bin/playwright show-report"
+  },
+  "keywords": [],
+  "author": "Marvin Zeising",
+  "license": "ISC"
+}

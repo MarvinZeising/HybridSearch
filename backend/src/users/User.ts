@@ -67,7 +67,7 @@ interface UserModel extends Model<IUser> {
 
 const User = mongoose.model<IUser, UserModel>('User', UserSchema);
 
-UserSchema.statics.search = async function (query: string, branchId: string) {
+User.search = async function (query: string, branchId: string) {
   try {
     const searchBody = {
       query: {
@@ -105,12 +105,16 @@ UserSchema.statics.search = async function (query: string, branchId: string) {
         }
       }
     };
+
     const searchResponse = await axios.post(`http://opensearch:9200/users/_search?search_pipeline=users-search-pipeline`, searchBody);
+
     const hits = searchResponse.data.hits.hits;
     const userIds = hits.map((hit: any) => hit._id);
+
     const plainUsers = await this.find({
       _id: { $in: userIds }
     }).populate('managerId', 'firstName lastName email jobTitle');
+
     return plainUsers.map((user: any) => {
       const score = hits.find((x: any) => x._id === user.id)._score;
       return { ...user._doc, score };

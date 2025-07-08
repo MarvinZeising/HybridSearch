@@ -10,10 +10,6 @@ await initializationService.initialize();
 
 const app = new Hono();
 app.use('*', cors());
-app.use('*', async (c, next) => {
-  c.req.json = async () => await c.req.json(); // Patch for express-like req.json
-  await next();
-});
 
 app.get('/health', async (c) => {
   if (!initializationService.getInitializationStatus()) {
