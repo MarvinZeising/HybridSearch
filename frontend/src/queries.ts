@@ -1,8 +1,8 @@
 import axios from 'axios';
-import type { NewsPost, NewsFormData } from './types/news';
-import type { Page, PageFormData } from './types/pages';
+import type { NewsPost } from './types/news';
+import type { Page } from './types/pages';
 import type { User, CreateUserRequest, UpdateUserRequest } from './types/users';
-import type { SearchRequest, MultiSearchResponse, Branch } from './types/search';
+import type { MultiSearchResponse } from './types/search';
 
 export const fetchAllPosts = async (): Promise<NewsPost[]> => {
   const response = await axios.get<NewsPost[]>('http://localhost:4000/api/news');
@@ -34,15 +34,6 @@ export const searchPages = async ({ query, branchId }: { query: string, branchId
   return response.data;
 };
 
-export const fetchPageById = async (id: string): Promise<Page> => {
-  const response = await axios.get<Page>(`http://localhost:4000/api/pages/${id}`);
-  return response.data;
-};
-
-export const deletePage = async (id: string): Promise<void> => {
-  await axios.delete(`http://localhost:4000/api/pages/${id}`);
-};
-
 // User queries
 export const fetchAllUsers = async (): Promise<User[]> => {
   const response = await axios.get<User[]>('http://localhost:4000/api/users');
@@ -68,55 +59,13 @@ export const deleteUser = async (id: string): Promise<void> => {
   await axios.delete(`http://localhost:4000/api/users/${id}`);
 };
 
-export const fetchUsersByDepartment = async (department: string): Promise<User[]> => {
-  const response = await axios.get<User[]>(`http://localhost:4000/api/users/department/${department}`);
-  return response.data;
-};
-
-export const fetchUsersByManager = async (managerId: string): Promise<User[]> => {
-  const response = await axios.get<User[]>(`http://localhost:4000/api/users/manager/${managerId}`);
-  return response.data;
-};
-
 export const searchUsers = async ({ query, branchId }: { query: string, branchId: string }): Promise<User[]> => {
   const response = await axios.post<User[]>('http://localhost:4000/api/users/search', {query, branchId});
   return response.data;
 };
 
-export const multiSearch = async (query: string, branchId: string): Promise<MultiSearchResponse> => {
-  const response = await axios.post<MultiSearchResponse>('http://localhost:4000/api/search', {
-    query,
-    branchId: branchId
-  });
-  return response.data;
-};
-
 // Branch queries
-export const fetchAllBranches = async (): Promise<Branch[]> => {
-  const response = await axios.get<Branch[]>('http://localhost:4000/api/branches');
-  return response.data;
-};
-
-export const fetchBranchById = async (id: string): Promise<Branch> => {
-  const response = await axios.get<Branch>(`http://localhost:4000/api/branches/${id}`);
-  return response.data;
-};
-
-export const createBranch = async (branchData: Omit<Branch, '_id' | 'createdAt' | 'updatedAt'>): Promise<Branch> => {
-  const response = await axios.post<Branch>('http://localhost:4000/api/branches', branchData);
-  return response.data;
-};
-
-export const updateBranch = async (id: string, branchData: Partial<Omit<Branch, '_id'>>): Promise<Branch> => {
-  const response = await axios.put<Branch>(`http://localhost:4000/api/branches/${id}`, branchData);
-  return response.data;
-};
-
-export const deleteBranch = async (id: string): Promise<void> => {
-  await axios.delete(`http://localhost:4000/api/branches/${id}`);
-};
-
-export const searchBranches = async ({ query, branchId }: { query: string, branchId?: string }): Promise<Branch[]> => {
-  const response = await axios.post<Branch[]>('http://localhost:4000/api/branches/search', { query, branchId });
+export const branchSearch = async (query: string, branchId: string): Promise<MultiSearchResponse> => {
+  const response = await axios.post<MultiSearchResponse>(`http://localhost:4000/api/branches/${branchId}/search`, {query});
   return response.data;
 };

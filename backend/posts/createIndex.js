@@ -48,15 +48,6 @@ async function createSearchPipeline(sentenceTransformerModelId, rerankerModelId)
   console.log('Created Search Pipeline: ', response.data)
 }
 
-async function getSentenceTransformerModelId() {
-  try {
-    const response = await axios.get('http://opensearch:9200/_ingest/pipeline/posts-ingest-pipeline')
-    return response.data['posts-ingest-pipeline'].processors[2].text_embedding.model_id
-  } catch (error) {
-    throw new Error(error.data)
-  }
-}
-
 async function createPagesIndex(sentenceTransformerModelId, rerankerModelId) {
   try {
     await Promise.all([
@@ -199,4 +190,4 @@ async function purgeUsersIndexes() {
   }
 }
 
-export { createPostsIndex, getSentenceTransformerModelId, createPagesIndex, createUsersIndex, purgePostsIndexes, purgePagesIndexes, purgeUsersIndexes };
+export { createPostsIndex, createPagesIndex, createUsersIndex, purgePostsIndexes, purgePagesIndexes, purgeUsersIndexes };

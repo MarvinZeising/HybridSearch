@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '../contexts/SessionContext';
-import { multiSearch } from '../queries';
+import { branchSearch } from '../queries';
 import type { UnifiedSearchResult } from '../types/search';
 
 const CentralSearch: React.FC = () => {
@@ -21,7 +21,7 @@ const CentralSearch: React.FC = () => {
 
   const { data: searchResults, isLoading, error } = useQuery({
     queryKey: ['central-search', debouncedQuery, currentBranchId],
-    queryFn: () => multiSearch(debouncedQuery, currentBranchId),
+    queryFn: () => branchSearch(debouncedQuery, currentBranchId),
     enabled: debouncedQuery.length > 0,
   });
 

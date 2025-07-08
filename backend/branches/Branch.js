@@ -83,7 +83,7 @@ Branch.search = async function(query, branchId = null) {
 };
 
 // Static method to perform central search on branch index (with reranking)
-Branch.centralSearch = async function(query, branchId) {
+Branch.searchContent = async function(query, branchId) {
   try {
     // Query the branch index directly, which contains all aggregated data for this branch
     const searchBody = {
