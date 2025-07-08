@@ -2,8 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import connectMongoDB from './mongodb.js';
 import { NewsPost, initializeDefaultPosts } from './posts/NewsPost.js';
-import { createPostsIndex, createPagesIndex, createUsersIndex } from './posts/createIndex.js';
-import { createBranchIndexes } from './branches/createIndex.js';
+import { createPostsIndex, createPagesIndex, createUsersIndex, purgePostsIndexes, purgePagesIndexes, purgeUsersIndexes } from './posts/createIndex.js';
+import { createBranchIndexes, purgeBranchIndexes } from './branches/createIndex.js';
+import { purgeMonstacheDatabases } from './purgeUtils.js';
 import deployModel from "./models/deployModel.js";
 import { Page, initializeDefaultPages } from './pages/Page.js';
 import { User, initializeDefaultUsers } from './users/User.js';
@@ -413,6 +414,17 @@ app.listen(PORT, async () => {
 
   try {
     await connectMongoDB();
+
+    // Purge existing indexes
+    await Promise.all([
+      purgePostsIndexes(),
+      purgePagesIndexes(),
+      purgeUsersIndexes(),
+      purgeBranchIndexes(),
+    ]);
+
+    // Purge Monstache databases
+    await purgeMonstacheDatabases();
 
     const [sentenceTransformerModelId, rerankerModelId] = await Promise.all([
       deployModel('sentence-transformer.json'),

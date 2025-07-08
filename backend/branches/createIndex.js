@@ -1,7 +1,7 @@
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,4 +65,26 @@ async function createUsersBranchIngestPipeline(modelId) {
   console.log('Created Users Branch Ingest Pipeline: ', response.data)
 }
 
-export { createBranchIndexes };
+async function purgeBranchIndexes() {
+  try {
+    console.log('Purging branch indexes, templates, and pipelines...');
+
+    await Promise.all([
+      // Delete all branch indexes
+      axios.delete('http://opensearch:9200/branch-*'),
+      // Delete index template
+      axios.delete('http://opensearch:9200/_index_template/branches'),
+      // Delete search pipeline
+      axios.delete('http://opensearch:9200/_search/pipeline/branches-search-pipeline'),
+      // Delete branch ingest pipelines
+      axios.delete('http://opensearch:9200/_ingest/pipeline/posts-branch-ingest-pipeline'),
+      axios.delete('http://opensearch:9200/_ingest/pipeline/pages-branch-ingest-pipeline'),
+      axios.delete('http://opensearch:9200/_ingest/pipeline/users-branch-ingest-pipeline'),
+    ]);
+    console.log('Successfully purged all branch indexes and pipelines');
+  } catch (error) {
+    console.log('Note: Some purge operations failed (this is normal if indexes don\'t exist yet)');
+  }
+}
+
+export { createBranchIndexes, purgeBranchIndexes };

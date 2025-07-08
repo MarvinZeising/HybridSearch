@@ -33,6 +33,68 @@ async function storeModelId(modelType, modelId) {
   });
 }
 
+async function ensureModelIsDeployed(modelId, modelType) {
+  try {
+    // Check current model status
+    const { data } = await axios.get(`http://opensearch:9200/_plugins/_ml/profile/models/${modelId}`);
+
+    // Check if any node has the model deployed
+    let isDeployed = false;
+    for (const nodeId in data.nodes) {
+      const node = data.nodes[nodeId];
+      if (node.models && node.models[modelId] && node.models[modelId].model_state === 'DEPLOYED') {
+        isDeployed = true;
+        break;
+      }
+    }
+
+    if (isDeployed) {
+      console.log(`Model ${modelType} (${modelId}) is already deployed`);
+      return;
+    }
+
+    // Model is not deployed, deploy it
+    console.log(`Model ${modelType} (${modelId}) is not deployed, deploying now...`);
+    await axios.post(`http://opensearch:9200/_plugins/_ml/models/${modelId}/_deploy`);
+
+    // Wait for deployment to complete
+    let attempts = 0;
+    const maxAttempts = 60; // 3 minutes with 3-second intervals
+
+    while (attempts < maxAttempts) {
+      await sleep(3);
+      attempts++;
+
+      try {
+        const { data: statusData } = await axios.get(`http://opensearch:9200/_plugins/_ml/profile/models/${modelId}`);
+
+        // Check if deployed on any node
+        let deploymentComplete = false;
+        for (const nodeId in statusData.nodes) {
+          const node = statusData.nodes[nodeId];
+          if (node.models && node.models[modelId] && node.models[modelId].model_state === 'DEPLOYED') {
+            deploymentComplete = true;
+            break;
+          }
+        }
+
+        if (deploymentComplete) {
+          console.log(`Model ${modelType} (${modelId}) deployed successfully`);
+          return;
+        }
+      } catch (error) {
+        console.log(`Waiting for model deployment... (attempt ${attempts}/${maxAttempts})`);
+      }
+    }
+
+    throw new Error(`Model ${modelType} (${modelId}) failed to deploy within 3 minutes`);
+
+  } catch (error) {
+    console.error(`Error ensuring model ${modelType} (${modelId}) is deployed:`, error.response?.data || error.message);
+    throw error;
+  }
+}
+
 async function deployModel(fileName) {
   // Determine modelType from fileName
   let modelType;
@@ -44,7 +106,14 @@ async function deployModel(fileName) {
   const existingModelId = await getStoredModelId(modelType);
   if (existingModelId) {
     console.log(`Found existing modelId for ${modelType}: ${existingModelId}`);
-    return existingModelId;
+
+    try {
+      await ensureModelIsDeployed(existingModelId, modelType);
+
+      return existingModelId;
+    } catch (error) {
+      console.error(`Error ensuring existing model ${modelType} (${existingModelId}) is deployed:`, error.message);
+    }
   }
 
   // Deploy new model

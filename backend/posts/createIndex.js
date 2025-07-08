@@ -1,7 +1,7 @@
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -139,4 +139,64 @@ async function createUsersSearchPipeline(sentenceTransformerModelId, rerankerMod
   console.log('Created Users Search Pipeline: ', response.data)
 }
 
-export { createPostsIndex, getSentenceTransformerModelId, createPagesIndex, createUsersIndex };
+async function purgePostsIndexes() {
+  try {
+    console.log('Purging posts indexes, templates, and pipelines...');
+
+    await Promise.all([
+      // Delete all posts indexes
+      axios.delete('http://opensearch:9200/posts-*'),
+      // Delete index template
+      axios.delete('http://opensearch:9200/_index_template/posts'),
+      // Delete ingest pipeline
+      axios.delete('http://opensearch:9200/_ingest/pipeline/posts-ingest-pipeline'),
+      // Delete search pipeline
+      axios.delete('http://opensearch:9200/_search/pipeline/posts-search-pipeline'),
+    ]);
+    console.log('Successfully purged all posts indexes and pipelines');
+  } catch (error) {
+    console.log('Note: Some purge operations failed (this is normal if indexes don\'t exist yet)');
+  }
+}
+
+async function purgePagesIndexes() {
+  try {
+    console.log('Purging pages indexes, templates, and pipelines...');
+
+    await Promise.all([
+      // Delete all pages indexes
+      axios.delete('http://opensearch:9200/pages-*'),
+      // Delete index template
+      axios.delete('http://opensearch:9200/_index_template/pages'),
+      // Delete ingest pipeline
+      axios.delete('http://opensearch:9200/_ingest/pipeline/pages-ingest-pipeline'),
+      // Delete search pipeline
+      axios.delete('http://opensearch:9200/_search/pipeline/pages-search-pipeline'),
+    ]);
+    console.log('Successfully purged all pages indexes and pipelines');
+  } catch (error) {
+    console.log('Note: Some purge operations failed (this is normal if indexes don\'t exist yet)');
+  }
+}
+
+async function purgeUsersIndexes() {
+  try {
+    console.log('Purging users indexes, templates, and pipelines...');
+
+    await Promise.all([
+      // Delete all users indexes
+      axios.delete('http://opensearch:9200/users-*'),
+      // Delete index template
+      axios.delete('http://opensearch:9200/_index_template/users'),
+      // Delete ingest pipeline
+      axios.delete('http://opensearch:9200/_ingest/pipeline/users-ingest-pipeline'),
+      // Delete search pipeline
+      axios.delete('http://opensearch:9200/_search/pipeline/users-search-pipeline'),
+    ]);
+    console.log('Successfully purged all users indexes and pipelines');
+  } catch (error) {
+    console.log('Note: Some purge operations failed (this is normal if indexes don\'t exist yet)');
+  }
+}
+
+export { createPostsIndex, getSentenceTransformerModelId, createPagesIndex, createUsersIndex, purgePostsIndexes, purgePagesIndexes, purgeUsersIndexes };
