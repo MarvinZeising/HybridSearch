@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Model } from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,7 +7,26 @@ import axios from 'axios';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const UserSchema = new mongoose.Schema({
+interface IUser extends Document {
+  firstName: string;
+  lastName: string;
+  email: string;
+  jobTitle: string;
+  department: string;
+  managerId: mongoose.Types.ObjectId | null;
+  employeeId: string;
+  hireDate: Date;
+  isActive: boolean;
+  phone?: string;
+  location?: string;
+  profilePhoto?: string | null;
+  branchId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  fullName?: string;
+}
+
+const UserSchema = new mongoose.Schema<IUser>({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -19,32 +38,36 @@ const UserSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   phone: String,
   location: String,
-  profilePhoto: { type: String, default: null }, // URL or path to profile photo
+  profilePhoto: { type: String, default: null },
   branchId: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
 
-// Virtual for full name
-UserSchema.virtual('fullName').get(function() {
+UserSchema.virtual('fullName').get(function (this: IUser) {
   return `${this.firstName} ${this.lastName}`;
 });
-
-// Ensure virtual fields are serialized
 UserSchema.set('toJSON', { virtuals: true });
 
-// Pre-save middleware to generate profile photo if not provided
-UserSchema.pre('save', function(next) {
+UserSchema.pre('save', function (next) {
   if (!this.profilePhoto && this.firstName && this.lastName && this.department) {
     this.profilePhoto = generateProfilePhoto(this.firstName, this.lastName, this.department);
   }
   next();
 });
 
-const User = mongoose.model('User', UserSchema);
+function generateProfilePhoto(firstName: string, lastName: string, department: string): string {
+  // Placeholder: implement your logic or return a default URL
+  return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(firstName + ' ' + lastName)}&backgroundType=gradientLinear&backgroundColor=ffdfbf,ffd6e0,c0aede,b6e3f4`;
+}
 
-// Static method to search users using OpenSearch (with reranking)
-User.search = async function(query, branchId) {
+interface UserModel extends Model<IUser> {
+  search(query: string, branchId: string): Promise<any[]>;
+}
+
+const User = mongoose.model<IUser, UserModel>('User', UserSchema);
+
+UserSchema.statics.search = async function (query: string, branchId: string) {
   try {
     const searchBody = {
       query: {
@@ -56,7 +79,7 @@ User.search = async function(query, branchId) {
           },
           queries: [
             {
-              multi_match: { // keyword search
+              multi_match: {
                 query: query,
                 fields: ['firstName^3', 'lastName^3', 'jobTitle^2', 'department^2', 'fullName^4'],
                 type: 'best_fields',
@@ -64,7 +87,7 @@ User.search = async function(query, branchId) {
               }
             },
             {
-              neural: { // neural search using sentence transformer
+              neural: {
                 embedding: {
                   query_text: query,
                   k: 5
@@ -75,67 +98,58 @@ User.search = async function(query, branchId) {
         }
       },
       ext: {
-        rerank: { // rerank results using cross-encoder
+        rerank: {
           query_context: {
             query_text: query
           }
         }
       }
     };
-
     const searchResponse = await axios.post(`http://opensearch:9200/users/_search?search_pipeline=users-search-pipeline`, searchBody);
-
     const hits = searchResponse.data.hits.hits;
-    const userIds = hits.map(hit => hit._id);
-
-    // Fetch full documents from MongoDB using the IDs
+    const userIds = hits.map((hit: any) => hit._id);
     const plainUsers = await this.find({
       _id: { $in: userIds }
     }).populate('managerId', 'firstName lastName email jobTitle');
-
-    return plainUsers.map((user) => {
-      const score = hits.find(x => x._id === user.id)._score;
-      return {...user._doc, score};
-    })
-    .sort((a, b) => b.score - a.score);
-  } catch (error) {
+    return plainUsers.map((user: any) => {
+      const score = hits.find((x: any) => x._id === user.id)._score;
+      return { ...user._doc, score };
+    }).sort((a: any, b: any) => b.score - a.score);
+  } catch (error: any) {
     console.error('Search error:', error.response?.data || error);
     throw new Error('Failed to search users');
   }
 };
 
-async function initializeDefaultUsers() {
+export async function initializeDefaultUsers(): Promise<void> {
   try {
     console.log('Creating users collection');
     await User.createCollection();
 
-    // Check if we already have users
     const count = await User.countDocuments();
     if (count === 0) {
       console.log('No users found, inserting default users...');
 
-      // Read and parse the default users
-      const defaultUsersPath = path.join(__dirname, 'default-users.json');
+      const defaultUsersPath = path.join(__dirname, 'assets', 'default-users.json');
       const defaultUsers = JSON.parse(fs.readFileSync(defaultUsersPath, 'utf8'));
 
-      // First, insert all users without managerId to get their ObjectIds
-      const usersWithoutManager = defaultUsers.map(user => ({
+      const usersWithoutManager = defaultUsers.map((user: any) => ({
         ...user,
-        managerId: null // Temporarily set to null
+        managerId: null
       }));
 
       const insertedUsers = await User.insertMany(usersWithoutManager);
+
       console.log('Default users inserted successfully');
 
-      // Create a map of employeeId to ObjectId
-      const userIdMap = {};
-      insertedUsers.forEach(user => {
+      const userIdMap: Record<string, mongoose.Types.ObjectId> = {};
+
+      insertedUsers.forEach((user: any) => {
         userIdMap[user.employeeId] = user._id;
       });
 
-      // Update managerId references
       for (const user of insertedUsers) {
-        const originalUser = defaultUsers.find(u => u.employeeId === user.employeeId);
+        const originalUser = defaultUsers.find((u: any) => u.employeeId === user.employeeId);
         if (originalUser && originalUser.managerId) {
           const managerObjectId = userIdMap[originalUser.managerId];
           if (managerObjectId) {
@@ -154,22 +168,4 @@ async function initializeDefaultUsers() {
   }
 }
 
-// Color schemes for different departments
-const departmentColors = {
-  'Executive': 'b6e3f4',
-  'Engineering': 'ffdfbf',
-  'Finance': 'd1d4f9',
-  'Marketing': 'ffd5dc',
-  'HR': 'd4edda',
-  'Sales': 'ffeaa7',
-  'Operations': 'e8d5c4'
-};
-
-// Generate profile photo URL for a user
-export function generateProfilePhoto(firstName, lastName, department) {
-  const seed = `${firstName}${lastName}`;
-  const backgroundColor = departmentColors[department] || 'b6e3f4';
-  return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=${backgroundColor}`;
-}
-
-export { User, initializeDefaultUsers };
+export { User };

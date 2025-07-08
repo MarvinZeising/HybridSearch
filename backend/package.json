@@ -2,9 +2,12 @@
   "name": "backend",
   "version": "1.0.0",
   "type": "module",
-  "main": "routes.js",
+  "main": "server.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "bun --watch src/server.ts",
+    "build": "bun build src/server.ts --outdir ./dist --target bun",
+    "start": "bun run dist/server.ts",
+    "test": "bun test"
   },
   "keywords": [],
   "author": "Marvin Zeising",
@@ -14,6 +17,13 @@
     "axios": "^1.9.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "hono": "^4.8.4",
     "mongoose": "^8.15.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.18",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "typescript": "^5.3.3"
   }
 }

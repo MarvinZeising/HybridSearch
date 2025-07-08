@@ -1,7 +1,20 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Model } from 'mongoose';
 import axios from 'axios';
 
-const BranchSchema = new mongoose.Schema({
+interface IBranch extends Document {
+  title: string;
+  description: string;
+  content: string;
+  branchId: string;
+  createdAt: Date;
+  createdBy: string;
+  createdByName: string;
+  updatedAt: Date;
+  updatedBy: string;
+  updatedByName: string;
+}
+
+const BranchSchema = new mongoose.Schema<IBranch>({
   title: String,
   description: String,
   content: String,
@@ -14,20 +27,22 @@ const BranchSchema = new mongoose.Schema({
   updatedByName: String
 });
 
-const Branch = mongoose.model('Branch', BranchSchema);
+interface BranchModel extends Model<IBranch> {
+  search(query: string, branchId?: string | null): Promise<any[]>;
+  searchContent(query: string, branchId: string): Promise<any>;
+}
 
-// Static method to search branches using OpenSearch (with reranking)
-Branch.search = async function(query, branchId = null) {
+const Branch = mongoose.model<IBranch, BranchModel>('Branch', BranchSchema);
+
+BranchSchema.statics.search = async function(query: string, branchId: string | null = null) {
   try {
-    // If searching in a specific branch, use that index, otherwise search all branch indices
     const indexName = branchId ? `branch-${branchId}` : 'branch-*';
-
     const searchBody = {
       query: {
         hybrid: {
           queries: [
             {
-              multi_match: { // keyword search
+              multi_match: {
                 query: query,
                 fields: ['title^4', 'description^2', 'content'],
                 type: 'best_fields',
@@ -39,7 +54,7 @@ Branch.search = async function(query, branchId = null) {
                 score_mode: 'max',
                 path: 'embeddings',
                 query: {
-                  neural: { // neural search using sentence transformer
+                  neural: {
                     'embeddings.knn': {
                       query_text: query,
                       k: 5
@@ -53,7 +68,7 @@ Branch.search = async function(query, branchId = null) {
       },
       search_pipeline: 'branches-search-pipeline',
       ext: {
-        rerank: { // rerank results using cross-encoder
+        rerank: {
           query_context: {
             query_text: query
           }
@@ -62,30 +77,25 @@ Branch.search = async function(query, branchId = null) {
     };
 
     const searchResponse = await axios.post(`http://opensearch:9200/${indexName}/_search`, searchBody);
-
     const hits = searchResponse.data.hits.hits;
-    const branchIds = hits.map(hit => hit._id);
 
-    // Fetch full documents from MongoDB using the IDs
+    const branchIds = hits.map((hit: any) => hit._id);
     const plainBranches = await this.find({
       _id: { $in: branchIds }
     });
 
-    return plainBranches.map((branch) => {
-      const score = hits.find(x => x._id === branch.id)?._score || 0;
-      return {...branch._doc, score};
-    })
-    .sort((a, b) => b.score - a.score);
-  } catch (error) {
+    return plainBranches.map((branch: any) => {
+      const score = hits.find((x: any) => x._id === branch.id)?._score || 0;
+      return { ...branch._doc, score };
+    }).sort((a: any, b: any) => b.score - a.score);
+  } catch (error: any) {
     console.error('Branch search error:', error.response?.data || error);
     throw new Error('Failed to search branches');
   }
 };
 
-// Static method to perform central search on branch index (with reranking)
-Branch.searchContent = async function(query, branchId) {
+BranchSchema.statics.searchContent = async function(query: string, branchId: string) {
   try {
-    // Query the branch index directly, which contains all aggregated data for this branch
     const searchBody = {
       query: {
         hybrid: {
@@ -125,18 +135,17 @@ Branch.searchContent = async function(query, branchId) {
       }
     };
 
-    // Execute search on the branch index
     const searchResponse = await axios.post(`http://opensearch:9200/branch-${branchId}/_search`, searchBody);
     const hits = searchResponse.data.hits.hits;
+
     const total = searchResponse.data.hits.total.value;
 
-    // Transform results to include type and score information
-    const results = hits.map(hit => {
+    const results = hits.map((hit: any) => {
       const source = hit._source;
       return {
         ...source,
         score: hit._score,
-        type: source.type || 'branch' // Use the type from the source, fallback to 'branch'
+        type: source.type || 'branch'
       };
     });
 
@@ -144,13 +153,13 @@ Branch.searchContent = async function(query, branchId) {
       results: results,
       totalHits: {
         total: total,
-        posts: results.filter(r => r.type === 'post').length,
-        pages: results.filter(r => r.type === 'page').length,
-        users: results.filter(r => r.type === 'user').length,
-        branches: results.filter(r => r.type === 'branch').length
+        posts: results.filter((r: any) => r.type === 'post').length,
+        pages: results.filter((r: any) => r.type === 'page').length,
+        users: results.filter((r: any) => r.type === 'user').length,
+        branches: results.filter((r: any) => r.type === 'branch').length
       }
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Branch central search error:', error.response?.data || error);
     throw new Error('Failed to perform central search');
   }

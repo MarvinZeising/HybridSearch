@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Model } from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,7 +7,19 @@ import axios from 'axios';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PageSchema = new mongoose.Schema({
+interface IPage extends Document {
+  title: string;
+  description: string;
+  content: string;
+  category: string;
+  tags: string[];
+  isPublished: boolean;
+  branchId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const PageSchema = new mongoose.Schema<IPage>({
   title: String,
   description: String,
   content: String,
@@ -19,10 +31,13 @@ const PageSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 });
 
-const Page = mongoose.model('Page', PageSchema);
+interface PageModel extends Model<IPage> {
+  search(query: string, branchId: string): Promise<any[]>;
+}
 
-// Static method to search pages using OpenSearch (with reranking)
-Page.search = async function(query, branchId) {
+const Page = mongoose.model<IPage, PageModel>('Page', PageSchema);
+
+PageSchema.statics.search = async function(query: string, branchId: string) {
   try {
     const searchBody = {
       query: {
@@ -34,7 +49,7 @@ Page.search = async function(query, branchId) {
           },
           queries: [
             {
-              multi_match: { // keyword search
+              multi_match: {
                 query: query,
                 fields: ['title^4', 'description^2', 'content'],
                 type: 'best_fields',
@@ -46,7 +61,7 @@ Page.search = async function(query, branchId) {
                 score_mode: 'max',
                 path: 'embeddings',
                 query: {
-                  neural: { // neural search using sentence transformer
+                  neural: {
                     'embeddings.knn': {
                       query_text: query,
                       k: 5
@@ -59,51 +74,47 @@ Page.search = async function(query, branchId) {
         }
       },
       ext: {
-        rerank: { // rerank results using cross-encoder
+        rerank: {
           query_context: {
             query_text: query
           }
         }
       }
     };
-
     const searchResponse = await axios.post(`http://opensearch:9200/pages/_search?search_pipeline=pages-search-pipeline`, searchBody);
 
     const hits = searchResponse.data.hits.hits;
-    const pageIds = hits.map(hit => hit._id);
+    const pageIds = hits.map((hit: any) => hit._id);
 
-    // Fetch full documents from MongoDB using the IDs
     const plainPages = await this.find({
       _id: { $in: pageIds }
     });
 
-    return plainPages.map((page) => {
-      const score = hits.find(x => x._id === page.id)._score;
-      return {...page._doc, score};
-    })
-    .sort((a, b) => b.score - a.score);
-  } catch (error) {
+    return plainPages.map((page: any) => {
+      const score = hits.find((x: any) => x._id === page.id)._score;
+      return { ...page._doc, score };
+    }).sort((a: any, b: any) => b.score - a.score);
+  } catch (error: any) {
     console.error('Search error:', error.response?.data || error);
     throw new Error('Failed to search pages');
   }
 };
 
-async function initializeDefaultPages() {
+export async function initializeDefaultPages(): Promise<void> {
   try {
     console.log('Creating pages collection');
+
     await Page.createCollection();
 
-    // Check if we already have pages
     const count = await Page.countDocuments();
     if (count === 0) {
       console.log('No pages found, inserting default pages...');
 
-      // Read and parse the default pages
-      const defaultPagesPath = path.join(__dirname, 'default-pages.json');
+      const defaultPagesPath = path.join(__dirname, 'assets', 'default-pages.json');
       const defaultPages = JSON.parse(fs.readFileSync(defaultPagesPath, 'utf8'));
 
-      // Insert the pages
       await Page.insertMany(defaultPages);
+
       console.log('Default pages inserted successfully');
     } else {
       console.log('Database already contains pages, skipping default pages insertion');
@@ -114,4 +125,4 @@ async function initializeDefaultPages() {
   }
 }
 
-export { Page, initializeDefaultPages };
+export { Page };

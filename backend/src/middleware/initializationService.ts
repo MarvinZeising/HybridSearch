@@ -1,22 +1,24 @@
-import { createPostsIndex, createPagesIndex, createUsersIndex, purgePostsIndexes, purgePagesIndexes, purgeUsersIndexes } from '../posts/createIndex.js';
-import { createBranchIndexes, purgeBranchIndexes } from '../branches/createIndex.js';
-import { purgeMonstacheDatabases } from '../purgeUtils.js';
-import deployModel from "../models/deployModel.js";
-import { initializeDefaultPosts } from '../posts/NewsPost.js';
-import { initializeDefaultPages } from '../pages/Page.js';
-import { initializeDefaultUsers } from '../users/User.js';
+import { createPostsIndex, purgePostsIndexes } from '../posts/createIndex.ts';
+import { createPagesIndex, purgePagesIndexes } from '../pages/createIndex.ts';
+import { createUsersIndex, purgeUsersIndexes } from '../users/createIndex.ts';
+import { createBranchIndexes, purgeBranchIndexes } from '../branches/createIndex.ts';
+import { purgeMonstacheDatabases } from '../purgeUtils.ts';
+import deployModel from '../models/deployModel.ts';
+import { initializeDefaultPosts } from '../posts/NewsPost.ts';
+import { initializeDefaultPages } from '../pages/Page.ts';
+import { initializeDefaultUsers } from '../users/User.ts';
 
 class InitializationService {
+  private isInitialized: boolean;
+
   constructor() {
     this.isInitialized = false;
   }
 
-  async initialize() {
+  async initialize(): Promise<void> {
     try {
       console.log('Starting server initialization...');
 
-      // Step 1: Purge existing indexes
-      console.log('Purging existing indexes...');
       await Promise.all([
         purgePostsIndexes(),
         purgePagesIndexes(),
@@ -24,18 +26,15 @@ class InitializationService {
         purgeBranchIndexes(),
       ]);
 
-      // Step 2: Purge Monstache databases
       console.log('Purging Monstache databases...');
       await purgeMonstacheDatabases();
 
-      // Step 3: Deploy models
       console.log('Deploying ML models...');
       const [sentenceTransformerModelId, rerankerModelId] = await Promise.all([
         deployModel('sentence-transformer.json'),
         deployModel('cross-encoder.json')
       ]);
 
-      // Step 4: Create indexes and initialize default data
       console.log('Creating indexes and initializing default data...');
       await Promise.all([
         createPostsIndex(sentenceTransformerModelId, rerankerModelId),
@@ -48,17 +47,14 @@ class InitializationService {
       ]);
 
       this.isInitialized = true;
-      console.log('Server initialization completed successfully');
-
-      return true;
+      console.log('Server initialization complete.');
     } catch (error) {
-      console.error('Error during initialization:', error);
-      this.isInitialized = false;
+      console.error('Initialization error:', error);
       throw error;
     }
   }
 
-  getInitializationStatus() {
+  getInitializationStatus(): boolean {
     return this.isInitialized;
   }
 }
