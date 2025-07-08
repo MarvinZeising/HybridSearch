@@ -6,6 +6,7 @@ elasticsearch-urls = ["http://opensearch:9200"]
 
 # Direct namespace mapping
 direct-read-namespaces = ["news.posts", "news.pages", "news.users"]
+direct-read-stateful = true
 
 # Enable real-time sync
 change-stream-namespaces = ["news.posts", "news.pages", "news.users"]
