@@ -37,7 +37,7 @@ interface PageModel extends Model<IPage> {
 
 const Page = mongoose.model<IPage, PageModel>('Page', PageSchema);
 
-PageSchema.statics.search = async function(query: string, branchId: string) {
+Page.search = async function(query: string, branchId: string) {
   try {
     const searchBody = {
       query: {

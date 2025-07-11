@@ -29,7 +29,7 @@ interface NewsPostModel extends Model<INewsPost> {
 
 const NewsPost = mongoose.model<INewsPost, NewsPostModel>('Post', NewsPostSchema);
 
-NewsPostSchema.statics.search = async function(query: string, branchId: string) {
+NewsPost.search = async function(query: string, branchId: string) {
   try {
     const searchBody = {
       query: {

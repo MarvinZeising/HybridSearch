@@ -34,7 +34,7 @@ interface BranchModel extends Model<IBranch> {
 
 const Branch = mongoose.model<IBranch, BranchModel>('Branch', BranchSchema);
 
-BranchSchema.statics.search = async function(query: string, branchId: string | null = null) {
+Branch.search = async function(query: string, branchId: string | null = null) {
   try {
     const indexName = branchId ? `branch-${branchId}` : 'branch-*';
     const searchBody = {
