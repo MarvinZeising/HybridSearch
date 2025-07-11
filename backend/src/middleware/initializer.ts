@@ -8,11 +8,13 @@ import { initializeDefaultPosts } from '../posts/NewsPost.ts';
 import { initializeDefaultPages } from '../pages/Page.ts';
 import { initializeDefaultUsers } from '../users/User.ts';
 
-class InitializationService {
+class Initializer {
   private isInitialized: boolean;
+  private semanticHighlighterModelId: string;
 
   constructor() {
     this.isInitialized = false;
+    this.semanticHighlighterModelId = '';
   }
 
   async initialize(): Promise<void> {
@@ -30,10 +32,13 @@ class InitializationService {
       await purgeMonstacheDatabases();
 
       console.log('Deploying ML models...');
-      const [sentenceTransformerModelId, rerankerModelId] = await Promise.all([
+      const [sentenceTransformerModelId, rerankerModelId, semanticHighlighterModelId] = await Promise.all([
         deployModel('sentence-transformer.json'),
-        deployModel('cross-encoder.json')
+        deployModel('cross-encoder.json'),
+        deployModel('semantic-highlighter.json'),
       ]);
+
+      this.semanticHighlighterModelId = semanticHighlighterModelId;
 
       console.log('Creating indexes and initializing default data...');
       await Promise.all([
@@ -54,9 +59,13 @@ class InitializationService {
     }
   }
 
-  getInitializationStatus(): boolean {
+  getStatus(): boolean {
     return this.isInitialized;
+  }
+
+  getSemanticHighlighterModelId(): string {
+    return this.semanticHighlighterModelId;
   }
 }
 
-export default new InitializationService();
+export default new Initializer();

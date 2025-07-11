@@ -7,6 +7,12 @@
       }
     },
     {
+      "set": {
+        "field": "type",
+        "value": "page"
+      }
+    },
+    {
       "text_chunking": {
         "algorithm": {
           "fixed_token_length": {

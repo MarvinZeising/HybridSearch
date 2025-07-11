@@ -2,17 +2,17 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import routes from './routes.ts';
 import { errorHandler } from './middleware/errorHandler.ts';
-import initializationService from './middleware/initializationService.ts';
+import initializer from './middleware/initializer.ts';
 import connectMongoDB from './mongodb.ts';
 
 await connectMongoDB();
-await initializationService.initialize();
+await initializer.initialize();
 
 const app = new Hono();
 app.use('*', cors());
 
 app.get('/health', async (c) => {
-  if (!initializationService.getInitializationStatus()) {
+  if (!initializer.getStatus()) {
     return c.json({ status: 'initializing' }, 503);
   }
   return c.json({ status: 'healthy' }, 200);

@@ -1,6 +1,7 @@
 import { Hono, type Context } from 'hono';
 import { Branch } from './Branch.ts';
 import { asyncHandler } from '../middleware/errorHandler.ts';
+import initializer from '../middleware/initializer.ts';
 
 const router = new Hono();
 
@@ -56,7 +57,7 @@ const searchBranches = asyncHandler(async (c: Context) => {
 const searchBranch = asyncHandler(async (c: Context) => {
   const { query } = await c.req.json();
   const branchId = c.req.param('id');
-  const searchResults = await Branch.searchContent(query, branchId);
+  const searchResults = await Branch.centralSearch(query, branchId, initializer.getSemanticHighlighterModelId());
   return c.json(searchResults, 200);
 });
 

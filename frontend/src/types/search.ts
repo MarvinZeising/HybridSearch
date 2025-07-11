@@ -19,8 +19,9 @@ export interface Branch {
 
 // Base search result type
 export interface SearchResultBase {
+  highlights: string[];
   score: number;
-  type: 'post' | 'page' | 'user' | 'branch';
+  type: 'post' | 'page' | 'user';
 }
 
 // Unified search result types using intersection types
@@ -39,7 +40,6 @@ export interface MultiSearchResponse {
     posts: number;
     pages: number;
     users: number;
-    branches: number;
   };
 }
 

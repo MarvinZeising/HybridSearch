@@ -1,0 +1,13 @@
+{
+  "name": "amazon/sentence-highlighting/opensearch-semantic-highlighter-v1",
+  "version": "1.0.0",
+  "model_format": "TORCH_SCRIPT",
+  "function_name": "QUESTION_ANSWERING",
+  "description": "A semantic highlighter model that identifies relevant sentences in a document given a query.",
+  "model_config": {
+    "model_type": "sentence_highlighting",
+    "framework_type": "huggingface_transformers"
+  },
+  "model_content_size_in_bytes": 439317181,
+  "model_content_hash_value": "bb647ba4eaace03b3441059d372050a0786c9e063af50b2e3a113fd401760a86"
+}

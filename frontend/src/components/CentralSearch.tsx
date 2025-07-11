@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useSession } from '../contexts/SessionContext';
-import { branchSearch } from '../queries';
-import type { UnifiedSearchResult } from '../types/search';
+import React, {useEffect, useState} from 'react';
+import {useQuery} from '@tanstack/react-query';
+import {useSession} from '../contexts/SessionContext';
+import {branchSearch} from '../queries';
+import type {UnifiedSearchResult} from '../types/search';
 
 const CentralSearch: React.FC = () => {
-  const { currentCEO, currentBranchId } = useSession();
+  const {currentCEO, currentBranchId} = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<'all' | 'post' | 'page' | 'user' | 'branch'>('all');
+  const [selectedType, setSelectedType] = useState<'all' | 'post' | 'page' | 'user'>('all');
 
   // Debounce search query
   useEffect(() => {
@@ -19,7 +19,7 @@ const CentralSearch: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data: searchResults, isLoading, error } = useQuery({
+  const {data: searchResults, isLoading, error} = useQuery({
     queryKey: ['central-search', debouncedQuery, currentBranchId],
     queryFn: () => branchSearch(debouncedQuery, currentBranchId),
     enabled: debouncedQuery.length > 0,
@@ -85,13 +85,13 @@ const CentralSearch: React.FC = () => {
                   Score: {formatScore(result.score)}
                 </span>
               </div>
-                             <span className="text-xs text-gray-400">{result.createdAt}</span>
-             </div>
-             <h3 className="font-semibold text-gray-900 mb-1">{result.title}</h3>
-             <p className="text-sm text-gray-600 mb-2">{result.description}</p>
-             <div className="flex items-center space-x-4 text-xs text-gray-500">
-               <span>Created: {result.createdAt}</span>
-             </div>
+              <span className="text-xs text-gray-400">{result.createdAt}</span>
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-1">{result.title}</h3>
+            <p className="text-sm text-gray-600 mb-2" dangerouslySetInnerHTML={{__html: result.highlights?.[0] ?? result.description}}/>
+            <div className="flex items-center space-x-4 text-xs text-gray-500">
+              <span>Created: {result.createdAt}</span>
+            </div>
           </div>
         );
 
@@ -110,7 +110,7 @@ const CentralSearch: React.FC = () => {
               <span className="text-xs text-gray-400">{result.updatedAt}</span>
             </div>
             <h3 className="font-semibold text-gray-900 mb-1">{result.title}</h3>
-            <p className="text-sm text-gray-600 mb-2">{result.description}</p>
+            <p className="text-sm text-gray-600 mb-2" dangerouslySetInnerHTML={{__html: result.highlights?.[0] ?? result.description}}/>
             <div className="flex items-center space-x-4 text-xs text-gray-500">
               <span>Category: {result.category}</span>
               {result.tags && result.tags.length > 0 && (
@@ -159,30 +159,6 @@ const CentralSearch: React.FC = () => {
           </div>
         );
 
-      case 'branch':
-        return (
-          <div {...commonProps}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${typeColor}`}>
-                  {typeIcon} Company Info
-                </span>
-                <span className="text-xs text-gray-500">
-                  Score: {formatScore(result.score)}
-                </span>
-              </div>
-              <span className="text-xs text-gray-400">{result.updatedAt}</span>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-1">{result.title}</h3>
-            <p className="text-sm text-gray-600 mb-2">{result.description}</p>
-            <div className="flex items-center space-x-4 text-xs text-gray-500">
-              <span>Created by: {result.createdByName}</span>
-              <span>•</span>
-              <span>Branch: {result.branchId}</span>
-            </div>
-          </div>
-        );
-
       default:
         return null;
     }
@@ -221,7 +197,8 @@ const CentralSearch: React.FC = () => {
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
         </div>
 
@@ -230,14 +207,13 @@ const CentralSearch: React.FC = () => {
             <span className="text-sm text-gray-600">Filter:</span>
             <select
               value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value as any)}
+              onChange={(e) => setSelectedType(e.target.value as 'all' | 'post' | 'page' | 'user')}
               className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Types</option>
               <option value="post">News Posts</option>
               <option value="page">Pages</option>
               <option value="user">Employees</option>
-              <option value="branch">Company Info</option>
             </select>
           </div>
         </div>
@@ -254,7 +230,8 @@ const CentralSearch: React.FC = () => {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
           <div className="flex items-center">
             <svg className="h-5 w-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             <span className="text-red-800">Search failed. Please try again.</span>
           </div>
@@ -270,7 +247,6 @@ const CentralSearch: React.FC = () => {
             <span>📰 News Posts: {searchResults.totalHits.posts}</span>
             <span>📄 Pages: {searchResults.totalHits.pages}</span>
             <span>👤 Employees: {searchResults.totalHits.users}</span>
-            <span>🏢 Company Info: {searchResults.totalHits.branches}</span>
           </div>
         </div>
       )}
@@ -284,7 +260,8 @@ const CentralSearch: React.FC = () => {
       {searchResults && filteredResults.length === 0 && debouncedQuery && (
         <div className="text-center py-8">
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.469-.98-6.047-2.564m.001-3.872A7.946 7.946 0 0112 6c2.34 0 4.469.98 6.047 2.564m.001 3.872A7.966 7.966 0 0112 18c-2.34 0-4.469-.98-6.047-2.564" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.469-.98-6.047-2.564m.001-3.872A7.946 7.946 0 0112 6c2.34 0 4.469.98 6.047 2.564m.001 3.872A7.966 7.966 0 0112 18c-2.34 0-4.469-.98-6.047-2.564"/>
           </svg>
           <h3 className="mt-2 text-sm font-medium text-gray-900">No results found</h3>
           <p className="mt-1 text-sm text-gray-500">

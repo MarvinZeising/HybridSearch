@@ -28,6 +28,7 @@ ENV NODE_ENV=production
 # RUN bun test
 RUN bun run build
 
+COPY ./src/models/assets ./dist/assets
 COPY ./src/posts/assets ./dist/assets
 COPY ./src/pages/assets ./dist/assets
 COPY ./src/branches/assets ./dist/assets

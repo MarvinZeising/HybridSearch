@@ -9,6 +9,12 @@
     },
     {
       "set": {
+        "field": "type",
+        "value": "user"
+      }
+    },
+    {
+      "set": {
         "field": "title",
         "value": "{{firstName}} {{lastName}}"
       }

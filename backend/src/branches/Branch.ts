@@ -28,13 +28,13 @@ const BranchSchema = new mongoose.Schema<IBranch>({
 });
 
 interface BranchModel extends Model<IBranch> {
-  search(query: string, branchId?: string | null): Promise<any[]>;
-  searchContent(query: string, branchId: string): Promise<any>;
+  search(query: string, branchId: string | null): Promise<any[]>;
+  centralSearch(query: string, branchId: string, semanticHighlighterModelId: string): Promise<any>;
 }
 
 const Branch = mongoose.model<IBranch, BranchModel>('Branch', BranchSchema);
 
-Branch.search = async function(query: string, branchId: string | null = null) {
+Branch.search = async function(query: string, branchId: string | null) {
   try {
     const indexName = branchId ? `branch-${branchId}` : 'branch-*';
     const searchBody = {
@@ -85,8 +85,12 @@ Branch.search = async function(query: string, branchId: string | null = null) {
     });
 
     return plainBranches.map((branch: any) => {
-      const score = hits.find((x: any) => x._id === branch.id)?._score || 0;
-      return { ...branch._doc, score };
+      const hit = hits.find((x: any) => x._id === branch.id);
+      const score = hit?._score || 0;
+      return {
+        ...branch._doc,
+        score
+      };
     }).sort((a: any, b: any) => b.score - a.score);
   } catch (error: any) {
     console.error('Branch search error:', error.response?.data || error);
@@ -94,7 +98,7 @@ Branch.search = async function(query: string, branchId: string | null = null) {
   }
 };
 
-BranchSchema.statics.searchContent = async function(query: string, branchId: string) {
+Branch.centralSearch = async function(query: string, branchId: string, semanticHighlighterModelId: string) {
   try {
     const searchBody = {
       query: {
@@ -125,13 +129,25 @@ BranchSchema.statics.searchContent = async function(query: string, branchId: str
           ]
         }
       },
-      search_pipeline: 'branches-search-pipeline-reranked',
+      search_pipeline: 'branches-search-pipeline',
       ext: {
         rerank: {
           query_context: {
             query_text: query
           }
         }
+      },
+      highlight: {
+        fields: {
+          content: {
+            type: 'unified' // 'semantic'
+          }
+        },
+        pre_tags: ['<b>'],
+        post_tags: ['</b>']
+        // options: {
+        //   model_id: semanticHighlighterModelId
+        // }
       }
     };
 
@@ -144,6 +160,7 @@ BranchSchema.statics.searchContent = async function(query: string, branchId: str
       const source = hit._source;
       return {
         ...source,
+        highlights: hit.highlight?.content,
         score: hit._score,
         type: source.type || 'branch'
       };
@@ -156,7 +173,6 @@ BranchSchema.statics.searchContent = async function(query: string, branchId: str
         posts: results.filter((r: any) => r.type === 'post').length,
         pages: results.filter((r: any) => r.type === 'page').length,
         users: results.filter((r: any) => r.type === 'user').length,
-        branches: results.filter((r: any) => r.type === 'branch').length
       }
     };
   } catch (error: any) {
