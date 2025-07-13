@@ -48,16 +48,10 @@ const deleteBranch = asyncHandler(async (c: Context) => {
   return c.json({ message: 'Branch deleted successfully' }, 200);
 });
 
-const searchBranches = asyncHandler(async (c: Context) => {
-  const { query, branchId } = await c.req.json();
-  const branches = await Branch.search(query, branchId);
-  return c.json(branches, 200);
-});
-
 const searchBranch = asyncHandler(async (c: Context) => {
   const { query } = await c.req.json();
   const branchId = c.req.param('id');
-  const searchResults = await Branch.centralSearch(query, branchId, initializer.getSemanticHighlighterModelId());
+  const searchResults = await Branch.search(query, branchId, initializer.getSemanticHighlighterModelId());
   return c.json(searchResults, 200);
 });
 
@@ -66,7 +60,6 @@ router.get('/:id', getBranchById);
 router.post('/', createBranch);
 router.put('/:id', updateBranch);
 router.delete('/:id', deleteBranch);
-router.post('/search', searchBranches);
 router.post('/:id/search', searchBranch);
 
 export default router;

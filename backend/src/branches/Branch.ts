@@ -1,4 +1,4 @@
-import mongoose, { Document, Model } from 'mongoose';
+import mongoose, {Document, Model} from 'mongoose';
 import axios from 'axios';
 
 interface IBranch extends Document {
@@ -29,78 +29,13 @@ const BranchSchema = new mongoose.Schema<IBranch>({
 
 interface BranchModel extends Model<IBranch> {
   search(query: string, branchId: string | null): Promise<any[]>;
-  centralSearch(query: string, branchId: string, semanticHighlighterModelId: string): Promise<any>;
 }
 
 const Branch = mongoose.model<IBranch, BranchModel>('Branch', BranchSchema);
 
 Branch.search = async function(query: string, branchId: string | null) {
   try {
-    const indexName = branchId ? `branch-${branchId}` : 'branch-*';
-    const searchBody = {
-      query: {
-        hybrid: {
-          queries: [
-            {
-              multi_match: {
-                query: query,
-                fields: ['title^4', 'description^2', 'content'],
-                type: 'best_fields',
-                fuzziness: 'AUTO'
-              }
-            },
-            {
-              nested: {
-                score_mode: 'max',
-                path: 'embeddings',
-                query: {
-                  neural: {
-                    'embeddings.knn': {
-                      query_text: query,
-                      k: 5
-                    }
-                  }
-                }
-              }
-            }
-          ]
-        }
-      },
-      search_pipeline: 'branches-search-pipeline',
-      ext: {
-        rerank: {
-          query_context: {
-            query_text: query
-          }
-        }
-      }
-    };
-
-    const searchResponse = await axios.post(`http://opensearch:9200/${indexName}/_search`, searchBody);
-    const hits = searchResponse.data.hits.hits;
-
-    const branchIds = hits.map((hit: any) => hit._id);
-    const plainBranches = await this.find({
-      _id: { $in: branchIds }
-    });
-
-    return plainBranches.map((branch: any) => {
-      const hit = hits.find((x: any) => x._id === branch.id);
-      const score = hit?._score || 0;
-      return {
-        ...branch._doc,
-        score
-      };
-    }).sort((a: any, b: any) => b.score - a.score);
-  } catch (error: any) {
-    console.error('Branch search error:', error.response?.data || error);
-    throw new Error('Failed to search branches');
-  }
-};
-
-Branch.centralSearch = async function(query: string, branchId: string, semanticHighlighterModelId: string) {
-  try {
-    const searchBody = {
+    const searchResponse = await axios.post(`http://opensearch:9200/branch-${branchId}/_search`, {
       query: {
         hybrid: {
           queries: [
@@ -149,12 +84,8 @@ Branch.centralSearch = async function(query: string, branchId: string, semanticH
         //   model_id: semanticHighlighterModelId
         // }
       }
-    };
-
-    const searchResponse = await axios.post(`http://opensearch:9200/branch-${branchId}/_search`, searchBody);
+    });
     const hits = searchResponse.data.hits.hits;
-
-    const total = searchResponse.data.hits.total.value;
 
     const results = hits.map((hit: any) => {
       const source = hit._source;
@@ -167,9 +98,9 @@ Branch.centralSearch = async function(query: string, branchId: string, semanticH
     });
 
     return {
-      results: results,
+      results,
       totalHits: {
-        total: total,
+        total: searchResponse.data.hits.total.value,
         posts: results.filter((r: any) => r.type === 'post').length,
         pages: results.filter((r: any) => r.type === 'page').length,
         users: results.filter((r: any) => r.type === 'user').length,
