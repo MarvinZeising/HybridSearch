@@ -2,15 +2,20 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import initializer from "../middleware/initializer.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export async function createBranchIndexes(sentenceTransformerModelId: string, rerankerModelId: string): Promise<void> {
+export async function createBranchIndexes(): Promise<void> {
   try {
+    const sentenceTransformerModelId = initializer.getModel('sentence-transformer').id;
+    const rerankerModelId = initializer.getModel('cross-encoder').id;
+    const ragModelId = initializer.getModel('gpt-4.1').id;
+
     await Promise.all([
       createBranchesIndexTemplate(),
-      createBranchesSearchPipeline(sentenceTransformerModelId, rerankerModelId),
+      createBranchesSearchPipeline(sentenceTransformerModelId, rerankerModelId, ragModelId),
       createPostsBranchIngestPipeline(sentenceTransformerModelId),
       createPagesBranchIngestPipeline(sentenceTransformerModelId),
       createUsersBranchIngestPipeline(sentenceTransformerModelId),
@@ -28,9 +33,10 @@ async function createBranchesIndexTemplate(): Promise<void> {
   console.log('Created Branches Index Template: ', response.data);
 }
 
-async function createBranchesSearchPipeline(sentenceTransformerModelId: string, rerankerModelId: string): Promise<void> {
+async function createBranchesSearchPipeline(sentenceTransformerModelId: string, rerankerModelId: string, ragModelId: string): Promise<void> {
   const pipeline = JSON.parse(
     fs.readFileSync(path.join(__dirname, 'assets', 'branches-search-pipeline.json'), 'utf8')
+      .replace(/RAG_MODEL_ID/gm, ragModelId)
       .replace(/RERANKER_MODEL_ID/gm, rerankerModelId)
       .replace(/MODEL_ID/gm, sentenceTransformerModelId)
   );

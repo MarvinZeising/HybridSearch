@@ -1,26 +1,30 @@
-import { createPostsIndex, purgePostsIndexes } from '../posts/createIndex.ts';
-import { createPagesIndex, purgePagesIndexes } from '../pages/createIndex.ts';
-import { createUsersIndex, purgeUsersIndexes } from '../users/createIndex.ts';
-import { createBranchIndexes, purgeBranchIndexes } from '../branches/createIndex.ts';
-import { purgeMonstacheDatabases } from '../purgeUtils.ts';
-import deployModel from '../models/deployModel.ts';
-import { initializeDefaultPosts } from '../posts/NewsPost.ts';
-import { initializeDefaultPages } from '../pages/Page.ts';
-import { initializeDefaultUsers } from '../users/User.ts';
+import {createPostsIndex, purgePostsIndexes} from '../posts/createIndex.ts';
+import {createPagesIndex, purgePagesIndexes} from '../pages/createIndex.ts';
+import {createUsersIndex, purgeUsersIndexes} from '../users/createIndex.ts';
+import {createBranchIndexes, purgeBranchIndexes} from '../branches/createIndex.ts';
+import {purgeMonstacheDatabases} from '../purgeUtils.ts';
+import {deployModel, loadModels, type Model} from '../models/deployModel.ts';
+import {initializeDefaultPosts} from '../posts/NewsPost.ts';
+import {initializeDefaultPages} from '../pages/Page.ts';
+import {initializeDefaultUsers} from '../users/User.ts';
+
+const modelSlugs = [
+  'sentence-transformer',
+  'cross-encoder',
+  'semantic-highlighter',
+  'gpt-4.1'
+] as const;
 
 class Initializer {
-  private isInitialized: boolean;
-  private semanticHighlighterModelId: string;
+  private isInitialized = false;
+  private models = [] as Model[];
 
   constructor() {
-    this.isInitialized = false;
-    this.semanticHighlighterModelId = '';
   }
 
   async initialize(): Promise<void> {
     try {
-      console.log('Starting server initialization...');
-
+      console.log('Purging existing indexes and pipelines...');
       await Promise.all([
         purgePostsIndexes(),
         purgePagesIndexes(),
@@ -31,21 +35,15 @@ class Initializer {
       console.log('Purging Monstache databases...');
       await purgeMonstacheDatabases();
 
-      console.log('Deploying ML models...');
-      const [sentenceTransformerModelId, rerankerModelId, semanticHighlighterModelId] = await Promise.all([
-        deployModel('sentence-transformer.json'),
-        deployModel('cross-encoder.json'),
-        deployModel('semantic-highlighter.json'),
-      ]);
-
-      this.semanticHighlighterModelId = semanticHighlighterModelId;
+      console.log('Loading models...');
+      this.models = await loadModels([...modelSlugs], {OPENAI_KEY: Bun.env.OPENAI_GPT_4_1_KEY || ''});
 
       console.log('Creating indexes and initializing default data...');
       await Promise.all([
-        createPostsIndex(sentenceTransformerModelId, rerankerModelId),
-        createPagesIndex(sentenceTransformerModelId, rerankerModelId),
-        createUsersIndex(sentenceTransformerModelId, rerankerModelId),
-        createBranchIndexes(sentenceTransformerModelId, rerankerModelId),
+        createPostsIndex(),
+        createPagesIndex(),
+        createUsersIndex(),
+        createBranchIndexes(),
         initializeDefaultPosts(),
         initializeDefaultPages(),
         initializeDefaultUsers(),
@@ -63,8 +61,8 @@ class Initializer {
     return this.isInitialized;
   }
 
-  getSemanticHighlighterModelId(): string {
-    return this.semanticHighlighterModelId;
+  getModel(name: typeof modelSlugs[number]): Model {
+    return this.models.find(model => model.slug === name)!;
   }
 }
 

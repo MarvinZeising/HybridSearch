@@ -28,12 +28,12 @@ const BranchSchema = new mongoose.Schema<IBranch>({
 });
 
 interface BranchModel extends Model<IBranch> {
-  search(query: string, branchId: string | null): Promise<any[]>;
+  search(query: string, branchId: string): Promise<any>;
 }
 
 const Branch = mongoose.model<IBranch, BranchModel>('Branch', BranchSchema);
 
-Branch.search = async function(query: string, branchId: string | null) {
+Branch.search = async function(query: string, branchId: string) {
   try {
     const searchResponse = await axios.post(`http://opensearch:9200/branch-${branchId}/_search`, {
       query: {
@@ -70,6 +70,14 @@ Branch.search = async function(query: string, branchId: string | null) {
           query_context: {
             query_text: query
           }
+        },
+        generative_qa_parameters: {
+          llm_model: 'gpt-4-1',
+          llm_question: query,
+          // memory_id: 'znCqcI0BfUsSoeNTntd7',
+          context_size: 5,
+          message_size: 5,
+          timeout: 15
         }
       },
       highlight: {

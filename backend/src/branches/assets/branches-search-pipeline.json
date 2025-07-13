@@ -26,6 +26,17 @@
           "document_fields": [ "title", "description", "content"]
         }
       }
+    },
+    {
+      "retrieval_augmented_generation": {
+        "model_id": "RAG_MODEL_ID",
+        "context_field_list": [
+          "title",
+          "content"
+        ],
+        "system_prompt": "You are a helpful assistant",
+        "user_instructions": "Generate a concise and informative answer in less than 100 words for the given question"
+      }
     }
   ]
 }

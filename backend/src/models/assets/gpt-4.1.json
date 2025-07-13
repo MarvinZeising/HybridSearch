@@ -1,0 +1,31 @@
+{
+  "name": "OpenAI GPT-4.1 model with connector",
+  "function_name": "remote",
+  "description": "The connector to public OpenAI model service for GPT 4.1",
+  "connector": {
+    "name": "OpenAI Connector (GPT 4.1)",
+    "description": "The connector to public OpenAI model service for GPT 4.1",
+    "version": 1,
+    "protocol": "http",
+    "parameters": {
+      "endpoint": "gpt-4-1-yfmy.openai.azure.com",
+      "max_tokens": 200,
+      "temperature": 0.8,
+      "model": "gpt-4-1"
+    },
+    "credential": {
+      "OPENAI_KEY": "OPENAI_KEY"
+    },
+    "actions": [
+      {
+        "action_type": "predict",
+        "method": "POST",
+        "url": "https://${parameters.endpoint}/openai/deployments/${parameters.model}/chat/completions?api-version=2025-01-01-preview",
+        "headers": {
+          "Authorization": "Bearer ${credential.OPENAI_KEY}"
+        },
+        "request_body": "{ \"messages\": ${parameters.messages} }"
+      }
+    ]
+  }
+}

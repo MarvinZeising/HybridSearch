@@ -2,12 +2,16 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import initializer from "../middleware/initializer.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export async function createPagesIndex(sentenceTransformerModelId: string, rerankerModelId: string): Promise<void> {
+export async function createPagesIndex(): Promise<void> {
   try {
+    const sentenceTransformerModelId = initializer.getModel('sentence-transformer').id;
+    const rerankerModelId = initializer.getModel('cross-encoder').id;
+
     await Promise.all([
       createIndexTemplate(),
       createIngestPipeline(sentenceTransformerModelId),

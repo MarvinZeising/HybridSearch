@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 import axios from "axios";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -8,34 +8,17 @@ const __dirname = path.dirname(__filename);
 
 const sleep = (seconds: number) => new Promise(resolve => setTimeout(resolve, seconds * 1000));
 
-const MODEL_INDEX = 'ml-model-ids';
-
-async function getStoredModelId(modelType: string): Promise<string | null> {
-  try {
-    const { data } = await axios.get(`http://opensearch:9200/${MODEL_INDEX}/_search`, {
-      params: { q: `modelType:${modelType}` }
-    });
-
-    if (data.hits.total.value > 0) {
-      return data.hits.hits[0]._source.modelId;
-    }
-
-    return null;
-  } catch (err: any) {
-    if (err.response && err.response.status === 404) return null;
-    throw err;
-  }
+export type Model = {
+  id: string;
+  slug: string;
+  definition: ModelDefinition;
 }
 
-async function storeModelId(modelType: string, modelId: string): Promise<void> {
-  await axios.post(`http://opensearch:9200/${MODEL_INDEX}/_doc`, {
-    modelType,
-    modelId,
-    createdAt: new Date().toISOString()
-  });
+type ModelDefinition = {
+  name: string;
 }
 
-async function ensureModelIsDeployed(modelId: string, modelType: string): Promise<void> {
+async function ensureModelIsDeployed(modelId: string, slug: string): Promise<void> {
   try {
     const { data } = await axios.get(`http://opensearch:9200/_plugins/_ml/profile/models/${modelId}`);
 
@@ -50,11 +33,11 @@ async function ensureModelIsDeployed(modelId: string, modelType: string): Promis
     }
 
     if (isDeployed) {
-      console.log(`Model ${modelType} (${modelId}) is already deployed`);
+      console.log(`Model ${slug} (${modelId}) is already deployed`);
       return;
     }
 
-    console.log(`Model ${modelType} (${modelId}) is not deployed, deploying now...`);
+    console.log(`Model ${slug} (${modelId}) is not deployed, deploying now...`);
     await axios.post(`http://opensearch:9200/_plugins/_ml/models/${modelId}/_deploy`);
 
     let attempts = 0;
@@ -76,7 +59,7 @@ async function ensureModelIsDeployed(modelId: string, modelType: string): Promis
         }
 
         if (deploymentComplete) {
-          console.log(`Model ${modelType} (${modelId}) deployed successfully`);
+          console.log(`Model ${slug} (${modelId}) deployed successfully`);
           return;
         }
       } catch (error) {
@@ -84,41 +67,63 @@ async function ensureModelIsDeployed(modelId: string, modelType: string): Promis
       }
     }
 
-    throw new Error(`Model ${modelType} (${modelId}) failed to deploy within 3 minutes`);
+    throw new Error(`Model ${slug} (${modelId}) failed to deploy within 3 minutes`);
   } catch (error: any) {
-    console.error(`Error ensuring model ${modelType} (${modelId}) is deployed:`, error.response?.data || error.message);
+    console.error(`Error ensuring model ${slug} (${modelId}) is deployed:`, error.response?.data || error.message);
     throw error;
   }
 }
 
-async function deployModel(fileName: string): Promise<string> {
-  let modelType: string;
-
-  if (fileName.includes('sentence-transformer')) modelType = 'sentence-transformer';
-  else if (fileName.includes('cross-encoder')) modelType = 'cross-encoder';
-  else modelType = fileName;
-
-  const existingModelId = await getStoredModelId(modelType);
-  if (existingModelId) {
-    console.log(`Found existing modelId for ${modelType}: ${existingModelId}`);
-    try {
-      await ensureModelIsDeployed(existingModelId, modelType);
-      return existingModelId;
-    } catch (error: any) {
-      console.error(`Error ensuring existing model ${modelType} (${existingModelId}) is deployed:`, error.message);
+async function loadModels(slugs: string[], env: Record<string, string>): Promise<Model[]> {
+  return await Promise.all(slugs.map(async (slug) => {
+    const filePath = path.join(__dirname, 'assets', slug + '.json');
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Model file not found: ${slug}`);
     }
-  }
 
-  const model = JSON.parse(fs.readFileSync(path.join(__dirname, 'assets', fileName), 'utf8'));
-  console.log('Deploying model ' + model.name + ' ...')
+    let content = fs.readFileSync(filePath, 'utf8');
+    for (const [key, value] of Object.entries(env)) {
+      content = content.replace(new RegExp(key, 'gm'), value);
+    }
+    const model = JSON.parse(content) as ModelDefinition;
 
+    const response = await axios.post('http://opensearch:9200/_plugins/_ml/models/_search', {
+      query: {
+        match: {
+          name: {
+            query: model.name,
+            operator: 'and'
+          }
+        }
+      }
+    });
+
+    let modelId = response.data.hits.hits[0]?._source.model_id;
+    if (modelId) {
+      await ensureModelIsDeployed(modelId, slug);
+    } else {
+      modelId = await deployModel(model);
+    }
+    console.log(`Model ${slug} deployed with ID: ${modelId}`);
+
+    return {
+      id: modelId,
+      slug,
+      definition: model
+    } as Model;
+  }))
+}
+
+async function deployModel(definition: ModelDefinition): Promise<string> {
   try {
-    const response = await axios.post('http://opensearch:9200/_plugins/_ml/models/_register?deploy=true', model)
+    console.log('Deploying model ' + definition.name + ' ...')
+    const response = await axios.post('http://opensearch:9200/_plugins/_ml/models/_register?deploy=true', definition)
 
     let i = 0
     let modelId: string | undefined;
     do {
       try {
+        console.log(definition.name + ' is deploying, waiting for 3 seconds...');
         modelId = await getModelIdByTask(response.data.task_id)
         break;
       } catch (error) {
@@ -127,8 +132,6 @@ async function deployModel(fileName: string): Promise<string> {
     } while (i++ < 60)
 
     if (!modelId) throw new Error('Model did not deploy within 3 minutes')
-
-    await storeModelId(modelType, modelId);
 
     return modelId;
   } catch (error: any) {
@@ -147,4 +150,4 @@ async function getModelIdByTask(taskId: string): Promise<string> {
   throw new Error('not completed')
 }
 
-export default deployModel;
+export { deployModel, loadModels };
