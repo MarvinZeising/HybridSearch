@@ -41,6 +41,7 @@ export interface MultiSearchResponse {
     pages: number;
     users: number;
   };
+  rag: string;
 }
 
 // Search request parameters

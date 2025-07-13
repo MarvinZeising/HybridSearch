@@ -112,8 +112,9 @@ Branch.search = async function(query: string, branchId: string) {
         posts: results.filter((r: any) => r.type === 'post').length,
         pages: results.filter((r: any) => r.type === 'page').length,
         users: results.filter((r: any) => r.type === 'user').length,
-      }
-    };
+      },
+      rag: searchResponse.data.ext.retrieval_augmented_generation.answer
+    }
   } catch (error: any) {
     console.error('Branch central search error:', error.response?.data || error);
     throw new Error('Failed to perform central search');
